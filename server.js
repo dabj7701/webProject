@@ -38,6 +38,36 @@ app.get('/api/skins', async (req, res) => {
     }
 });
 
+app.post('/api/skins', async (req, res) => {
+    
+})
+
+app.get('/api/categories', async (req, res) => {
+    let conn;
+    try{
+        conn = await pool.getConnection();
+        const rows = await conn.query(`SELECT * FROM categories`);
+        res.json(rows);
+    }catch(err){
+        console.log('Databasfel:', err);
+    }finally{
+        if(conn) conn.release();
+    }
+});
+
+app.get('/api/conditions', async (req, res) => {
+    let conn; 
+    try{
+        conn = await pool.getConnection(); 
+        const rows = await conn.query(`SELECT * FROM conditions`);
+        res.json(rows); 
+    }catch(err){
+        console.log('Databasfel: ', err);
+    }finally{
+        if(conn) conn.release;
+    }
+})
+
 const PORT = process.env.PORT || 3000; 
 app.listen(PORT, () => {
     console.log(`The server is listening to port ${PORT}`);

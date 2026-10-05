@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:latest
+    container_name: skinfolio_docker_db
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: 1234
+      MARIADB_DATABASE: skinfolio
+    ports:
+      - "3306:3306"
+    volumes:
+      # Detta gör att Docker automatiskt kör din befintliga setup.sql första gången containern startar
+      - ./setup.sql:/docker-entrypoint-initdb.d/setup.sql
