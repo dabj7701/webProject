@@ -58,3 +58,32 @@ API:et snurrar nu på `http://localhost:3000`.
 
 ### Användare
 * `POST /api/users` - Registrera en ny användare (lösenord hashas med bcrypt) <--- Inte klar än
+
+* ## Arbeta tillsammans (Git-kommandon)
+
+När du har skrivit ny kod och vill ladda upp den till projektet, kör dessa kommandon i terminalen:
+
+**1. Kolla vilka filer du har ändrat (frivilligt):**
+\`\`\`bash
+git status
+\`\`\`
+
+**2. Lägg till alla dina ändringar:**
+\`\`\`bash
+git add .
+\`\`\`
+
+**3. Spara ändringarna lokalt med ett meddelande:**
+\`\`\`bash
+git commit -m "Beskriv vad du har gjort, t.ex. 'Lade till knappar i frontend'"
+\`\`\`
+
+**4. Hämta de senaste ändringarna (gör alltid detta innan du laddar upp!):**
+\`\`\`bash
+git pull
+\`\`\`
+
+**5. Ladda upp din kod till projektet:**
+\`\`\`bash
+git push
+\`\`\`
