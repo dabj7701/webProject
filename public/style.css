@@ -1,0 +1,19 @@
+.status-message {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2rem;
+    color: #a0a5b5;
+}
+
+.status-message.error{
+    color: #ff4c4c;
+    border: 1px solid #ff4c4c;
+    border-radius: 8px;
+    background-color: rgba(255, 76, 76, 0.1);
+}
+
+#totalValue{
+    font-weight: bold;
+    color: #4caf50;
+    font-size: 1.2rem; 
+}
