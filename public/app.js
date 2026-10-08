@@ -1,5 +1,92 @@
 document.addEventListener('DOMContentLoaded', fetchSkins); 
 
+const modalOverlay = document.getElementById('modalOverlay'); 
+const loginModal = document.getElementById('loginModal');
+const registerModal = document.getElementById('registerModal')
+
+function openModal(type){
+    modalOverlay.style.display = 'flex';
+    if(type === 'login'){
+        loginModal.style.display = 'block';
+        registerModal.style.display = 'none';
+    } else {
+        loginModal.style.display = 'none';
+        registerModal.style.display = 'block';
+    }
+}
+
+function closeModal(){
+    modalOverlay.style.display = 'none';
+}
+
+document.getElementById('headerLoginBtn').addEventListener('click',() => openModal('login'));
+document.getElementById('textLoginLink').addEventListener('click', (e) => {e.preventDefault(); openModal('login');});
+document.getElementById('headerRegisterBtn').addEventListener('click', () => openModal('register'));
+document.getElementById('switchToRegister').addEventListener('click', (e) => {e.preventDefault(); openModal('register');});
+document.getElementById('switchToLogin').addEventListener('click', (e) => {e.preventDefault(); openModal('login')});
+
+document.getElementById('closeLogin').addEventListener('click', closeModal);
+document.getElementById('closeRegister').addEventListener('click', closeModal);
+
+modalOverlay.addEventListener('click', (e) => {
+    if(e.target === modalOverlay) closeModal();
+})
+
+function showMessage(elementId, message, isError = true){
+    const el = document.getElementById(elementId);
+    el.textContent = message; 
+    el.style.color = isError ? 'red' : 'green'; 
+    el.style.display = 'block'
+}
+
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+
+    console.log(username, password);
+
+    fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({username, password})
+    })
+    .then(res => res.json().then(data => ({status: res.status, body: data})))
+    .then(res =>{
+        if(res.status === 200){
+            closeModal();
+            document.getElementById('loginForm').reset();
+            document.querySelector('.header-actions').style.display = 'none';
+            document.getElementById('unauthenticatedState').style.display = 'none';
+            fetchSkins();
+        } else {
+            showMessage('loginMessage', res.body.error);
+        }
+    });
+});
+
+document.getElementById('registerForm').addEventListener('submit', (e) =>{
+    e.preventDefault();
+    const username = document.getElementById('regUsername').value;
+    const password = document.getElementById('regPassword').value;
+
+    fetch('/api/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ username, password })
+    })
+    .then(res => res.json().then(data => ({ status: res.status, body: data})))
+    .then(res => {
+        if(res.status === 201){
+            showMessage('registerMessage', 'Account created, redirecting to login', false);
+            document.getElementById('registerForm').reset();
+            setTimeout(() => openModal('login'), 1500);
+        } else {
+            showMessage('registerMessage', res.body.error, true);
+        }
+    })
+})
+
 function fetchSkins(){
     const container = document.getElementById('skinsContainer');
     const statusMessage = document.getElementById('statusMessage');
@@ -12,13 +99,24 @@ function fetchSkins(){
 
     fetch('/api/skins')
         .then(response => {
+            if(response.status === 401){
+                document.getElementById('unauthenticatedState').style.display = 'block'; 
+                document.getElementById('skinsContainer').style.display = 'none'; 
+                statusMessage.style.display = 'none';
+                //updateAuthUI(false);
+                throw new Error('NOT_LOGGED_IN'); 
+            }
+
             if(!response.ok){
-                throw new Error('Network response was not OK'); 
+                throw new Error('Network response was not OK')
             }
             return response.json();
         })
         .then(skins => {
             console.log('GET response data:', skins)
+
+            updateAuthUI(true);
+            document.getElementById('unauthenticatedState').style.display = 'none';
 
             if(skins.length === 0){
                 statusMessage.textContent = 'No objects in the collection. Please try add an item.'
@@ -30,6 +128,7 @@ function fetchSkins(){
             container.innerHTML = ''; 
 
             let totalValue = 0; 
+
 
             skins.forEach(skin => {
                 totalValue += Number(skin.price)
@@ -53,9 +152,13 @@ function fetchSkins(){
             totalValueSpan.textContent = totalValue.toLocaleString('sv-SE'); 
         })
         .catch(error =>{
-            console.log('Error with retrieving', error);
-            statusMessage.textContent ='Server error: Could not retrieve your items';
-            statusMessage.classList.add('Error');
+            if(error.message !== 'NOT_LOGGED_IN'){
+                console.log('Error with retrieving', error);
+                document.getElementById('unauthenticatedState').style.display = 'none';
+                statusMessage.textContent ='Server error: Could not retrieve your items';
+                statusMessage.classList.add('Error');
+                statusMessage.style.display = 'block'
+            }
         });
 }
 

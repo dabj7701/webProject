@@ -1,12 +1,18 @@
 require('dotenv').config();
 
 const express = require('express');
+const session = require('express-session');
 const mariadb = require('mariadb'); 
 const bcrypt = require('bcrypt');
 
 const app = express();
 app.use(express.json()); 
-app.use(express.static('public'));
+app.use(session({
+    secret: 'superhemlig_nyckel_här',
+    resave: false,
+    saveUninitialized: false
+}));
+
 
 const pool = mariadb.createPool({
     host: process.env.DB_HOST,
@@ -19,6 +25,10 @@ const pool = mariadb.createPool({
 
 
 app.get('/api/skins', async (req, res) => {
+    if(!req.session || !req.session.userId){
+        return res.status(401).json({error: 'Not logged in'})
+    }
+
     let conn; 
     try {
         conn = await pool.getConnection(); 
@@ -137,13 +147,13 @@ app.post('/api/register', async (req, res) => {
 
     try{
         conn = await pool.getConnection();
-        const existingUsers = await conn.query('SELECT id FROM users WHERE = ?', [username]);
+        const existingUsers = await conn.query('SELECT id FROM users WHERE username = ?', [username]);
         if(existingUsers.length > 0){
             return res.status(400).json({error: 'Username is already taken'})
         }
 
         const hashedPassword = await bcrypt.hash(password, 10); 
-        await conn.query('INSERT INTO users (username, password, role)', [username, hashedPassword, role || 'User']); 
+        await conn.query('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, hashedPassword, role || 'User']); 
 
         res.status(201).json({message: 'User has been created'})
     }catch(err){
@@ -161,7 +171,7 @@ app.post('/api/login', async (req, res) => {
         const users = await conn.query('SELECT * FROM users WHERE username = ?', [username]); 
 
         if(users.length > 0){
-            const user = user[0]; 
+            const user = users[0]; 
             const match = await bcrypt.compare(password, user.password); 
 
             if(match){
@@ -181,6 +191,8 @@ app.post('/api/login', async (req, res) => {
         if(conn) conn.release(); 
     }
 })
+
+app.use(express.static('public'));
 
 const PORT = process.env.PORT || 3000; 
 app.listen(PORT, () => {
