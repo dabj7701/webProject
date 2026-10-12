@@ -56,7 +56,6 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
         if(res.status === 200){
             closeModal();
             document.getElementById('loginForm').reset();
-            document.querySelector('.header-actions').style.display = 'none';
             document.getElementById('unauthenticatedState').style.display = 'none';
             fetchSkins();
         } else {
@@ -87,6 +86,45 @@ document.getElementById('registerForm').addEventListener('submit', (e) =>{
     })
 })
 
+function updateAuthUI(isLoggenIn){
+    const loginBtn = document.getElementById('headerLoginBtn');
+    const regBtn = document.getElementById('headerRegisterBtn');
+    const logoutBtn = document.getElementById('headerLogoutBtn');
+    
+    if(isLoggenIn){
+        if(loginBtn) loginBtn.style.display = 'none';
+        if(regBtn) regBtn.style.display = 'none';
+        if(logoutBtn) logoutBtn.style.display = 'inline-block';
+    } else {
+        if(loginBtn) loginBtn.style.display = 'inline-block';
+        if(regBtn) regBtn.style.display = 'inline-block';
+        if(logoutBtn) logoutBtn.style.display = 'none';
+    }
+}
+
+document.getElementById('headerLogoutBtn').addEventListener('click', (e) => {
+    e.preventDefault(); 
+    fetch('/api/logout', {
+        method: 'POST'
+    })
+    .then(res => {
+        if(res.ok){
+            updateAuthUI(false);
+
+            document.getElementById('unauthenticatedState').style.display = 'block';
+
+            const container = document.getElementById('skinsContainer');
+            container.style.display = 'none';
+            container.innerHTML = '';
+
+            document.getElementById('totalValueContainer').textContent = '0';
+            document.getElementById('statusMessage').style.display = 'none';
+        }
+    }).catch(error => {
+        console.log('Error while trying to log out', error); 
+    })
+})
+
 function fetchSkins(){
     const container = document.getElementById('skinsContainer');
     const statusMessage = document.getElementById('statusMessage');
@@ -103,7 +141,7 @@ function fetchSkins(){
                 document.getElementById('unauthenticatedState').style.display = 'block'; 
                 document.getElementById('skinsContainer').style.display = 'none'; 
                 statusMessage.style.display = 'none';
-                //updateAuthUI(false);
+                updateAuthUI(false);
                 throw new Error('NOT_LOGGED_IN'); 
             }
 

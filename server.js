@@ -54,10 +54,14 @@ app.get('/api/skins', async (req, res) => {
 });
 
 app.post('/api/skins', async (req, res) => {
+    if(!req.session || !req.session.userId){
+        return res.status(401).json({error: 'Not logged in!'})
+    }
     let conn; 
     try{
-        const { user_id, category_id, condition_id, name, price } = req.body;
-        if(!user_id || !category_id || !condition_id || !name || !price){
+        const user_id = req.session.userId;
+        const { category_id, condition_id, name, price } = req.body;
+        if(!category_id || !condition_id || !name || !price){
             return res.status(400).json({ error: 'All fields must be filled in' });
         }
         conn = await pool.getConnection();
@@ -68,6 +72,7 @@ app.post('/api/skins', async (req, res) => {
         res.status(201).json({ message: 'Skin added successfully', skinId: result.insertId });
     }catch(err){
         console.log('Database error: ', err); 
+        res.status(500).json({error: 'Error while trying to add skin'})
     }finally{
         if(conn) conn.release();
     }
@@ -190,6 +195,17 @@ app.post('/api/login', async (req, res) => {
     } finally{
         if(conn) conn.release(); 
     }
+})
+
+app.post('/api/logout', (req, res) => {
+    req.session.destroy(err => {
+        if(err){
+            return res.status(500).json({error : 'Could not log out! Please try again'});
+        }else{
+            res.clearCookie('connect.sid');
+            res.json({message: 'Logged out succsesfully!'});
+        }
+    })
 })
 
 app.use(express.static('public'));
