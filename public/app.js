@@ -157,6 +157,69 @@ document.getElementById('addSkinForm').addEventListener('submit', (e) => {
     .catch(err => console.log('Error adding skin:', err)); 
 })
 
+
+function editSkin(skin) {
+    document.getElementById('editSkinId').value = skin.id;
+    document.getElementById('editSkinName').value = skin.skin_name;
+    document.getElementById('editSkinPrice').value = skin.price;
+    document.getElementById('editSkinImage').value = skin.image_url || '';
+
+    window.currentEditingSkin = skin; 
+
+    document.getElementById('editSkinModal').style.display = 'flex';
+}
+
+document.getElementById('closeEditModalBtn').addEventListener('click', () => {
+    document.getElementById('editSkinModal').style.display = 'none';
+});
+
+document.getElementById('editSkinForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const id = document.getElementById('editSkinId').value;
+    const name = document.getElementById('editSkinName').value;
+    const price = document.getElementById('editSkinPrice').value;
+    const image_url = document.getElementById('editSkinImage').value;
+    
+    const category_id = window.currentEditingSkin.category_id;
+    const condition_id = window.currentEditingSkin.condition_id;
+    const user_id = window.currentEditingSkin.user_id;
+
+    fetch(`/api/skins/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, price, category_id, condition_id, user_id, image_url })
+    })
+    .then(res => {
+        if(res.ok) {
+            document.getElementById('editSkinModal').style.display = 'none';
+            fetchSkins();
+        } else {
+            return res.json().then(data => alert(data.error || 'Could not update skin!'));
+        }
+    })
+    .catch(err => console.log('Error updating skin:', err));
+});
+
+
+function deleteSkin(skinId) {
+    if(!confirm('Are you sure that you want to delete this item from your collection?')) {
+        return;
+    }
+
+    fetch(`/api/skins/${skinId}`, {
+        method: 'DELETE'
+    })
+    .then(res => {
+        if(res.ok) {
+            fetchSkins();
+        } else {
+            alert('Could not remove item!');
+        }
+    })
+    .catch(err => console.log('Error deleting skin:', err));
+}
+
 function fetchSkins(){
     const container = document.getElementById('skinsContainer');
     const statusMessage = document.getElementById('statusMessage');
@@ -215,10 +278,28 @@ function fetchSkins(){
                         <span class="condition">${skin.condition_name}</span>
                     </div>
                 </div>
-                <div class="skin-price">
-                    ${skin.price} kr
-                </div>
+                <div class="skin-price" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <span>${skin.price} kr</span>
+
+                        <button class="edit-btn" style="background: #3498db; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-weight: bold; font-size: 0.8em;">Edit</button>
+                        
+                        <button class="delete-btn" data-id="${skin.id}" style="background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-weight: bold; font-size: 0.8em; line-height: 1;">
+                            Delete
+                        </button>
+                    </div>
+
                 `;
+
+                const editBtn = article.querySelector('.edit-btn');
+                editBtn.addEventListener('click', () => {
+                    editSkin(skin);
+                });
+
+                const deleteBtn = article.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', (e) => {
+                    deleteSkin(skin.id);
+                });
+
                 container.appendChild(article)
             });
             totalValueSpan.textContent = totalValue.toLocaleString('sv-SE'); 

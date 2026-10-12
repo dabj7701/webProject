@@ -88,6 +88,8 @@ app.delete('/api/skins/:id', async (req,res) => {
         if(result.affectedRows === 0){
             return res.status(404).json({ error: 'Skin not found'}); 
         }
+        res.json({ message: 'Skin deleted successfully' });
+
     }catch(err){
         console.log('Database error: ', err);
     }finally{
