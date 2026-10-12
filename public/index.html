@@ -70,20 +70,21 @@
             <form id="addSkinForm">
                 <input type="text" id="addSkinName" placeholder="Skin Name" required>
                 <input type="text" id="addSkinPrice" placeholder="price" required>
+                <input type="url" id="addSkinImage" placeholder="Image URL (optional)">
 
                 <label>Category:</label>
                 <select id="addSkinCategory" required>
-                    <option value="1">Pistol</option>
+                    <option value="1">Sniper</option>
                     <option value="2">Rifle</option>
-                    <option value="3">Sniper</option>
+                    <option value="3">Pistol</option>
                 </select>
                 <label>Wear:</label>
-                <select id="addSkinWear" required>¨
-                    <option value="1">Battle-Scared</option>
-                    <option value="2">Well-Worn</option>
+                <select id="addSkinCondition" required>¨
+                    <option value="5">Battle-Scared</option>
+                    <option value="4">Well-Worn</option>
                     <option value="3">Field-tested</option>
-                    <option value="4">Mininal Wear</option>
-                    <option value="5">Factory New</option>
+                    <option value="2">Mininal Wear</option>
+                    <option value="1">Factory New</option>
                 </select>
                 <button type="submit" style="margin-top: 10px;">Add</button>
             </form>

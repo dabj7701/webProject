@@ -39,7 +39,8 @@ app.get('/api/skins', async (req, res) => {
                 skins.name AS skin_name,
                 categories.name AS category_name,
                 conditions.name AS condition_name,
-                skins.price
+                skins.price,
+                skins.image_url
             FROM skins 
             JOIN categories ON skins.category_id = categories.id
             JOIN conditions ON skins.condition_id = conditions.id
@@ -60,16 +61,16 @@ app.post('/api/skins', async (req, res) => {
     let conn; 
     try{
         const user_id = req.session.userId;
-        const { category_id, condition_id, name, price } = req.body;
+        const { category_id, condition_id, name, price, image_url } = req.body;
         if(!category_id || !condition_id || !name || !price){
             return res.status(400).json({ error: 'All fields must be filled in' });
         }
         conn = await pool.getConnection();
         const result = await conn.query(
-            'INSERT INTO skins (user_id, category_id, condition_id, name, price) VALUES (?, ?, ?, ?, ?)',
-            [user_id, category_id, condition_id, name, price]
+            'INSERT INTO skins (user_id, category_id, condition_id, name, price, image_url) VALUES (?, ?, ?, ?, ?, ?)',
+            [user_id, category_id, condition_id, name, price, image_url || null]
         );
-        res.status(201).json({ message: 'Skin added successfully', skinId: result.insertId });
+        res.status(201).json({ message: 'Skin added successfully', skinId: result.insertId.toString() });
     }catch(err){
         console.log('Database error: ', err); 
         res.status(500).json({error: 'Error while trying to add skin'})
@@ -98,15 +99,15 @@ app.put('/api/skins/:id', async (req, res) => {
     let conn;
     try{
         const skinId = req.params.id; 
-        const { user_id, category_id, condition_id, name, price } = req.body;
+        const { user_id, category_id, condition_id, name, price, image_url } = req.body;
         if(!user_id || !category_id || !condition_id || !name || !price){
             return res.status(400).json({ error: 'All fields must be filled to update'});
         }
 
         conn = await pool.getConnection(); 
         const result = await conn.query(
-            'UPDATE skins SET user_id = ?, category_id = ?, condition_id = ?, name = ?, price = ? WHERE id = ?',
-            [user_id, category_id, condition_id, name, price, skinId]
+            'UPDATE skins SET user_id = ?, category_id = ?, condition_id = ?, name = ?, price = ?, image_url = ? WHERE id = ?',
+            [user_id, category_id, condition_id, name, price, image_url || null, skinId]
         ); 
 
         if(result.affectedRows === 0){

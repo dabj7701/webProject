@@ -24,6 +24,7 @@ document.getElementById('textLoginLink').addEventListener('click', (e) => {e.pre
 document.getElementById('headerRegisterBtn').addEventListener('click', () => openModal('register'));
 document.getElementById('switchToRegister').addEventListener('click', (e) => {e.preventDefault(); openModal('register');});
 document.getElementById('switchToLogin').addEventListener('click', (e) => {e.preventDefault(); openModal('login')});
+document.getElementById('closeAddSkin').addEventListener('click', closeModal);
 
 document.getElementById('closeLogin').addEventListener('click', closeModal);
 document.getElementById('closeRegister').addEventListener('click', closeModal);
@@ -90,15 +91,18 @@ function updateAuthUI(isLoggenIn){
     const loginBtn = document.getElementById('headerLoginBtn');
     const regBtn = document.getElementById('headerRegisterBtn');
     const logoutBtn = document.getElementById('headerLogoutBtn');
+    const totalValueContainer = document.getElementById('totalValueContainer');
     
     if(isLoggenIn){
         if(loginBtn) loginBtn.style.display = 'none';
         if(regBtn) regBtn.style.display = 'none';
         if(logoutBtn) logoutBtn.style.display = 'inline-block';
+        if(totalValueContainer) totalValueContainer.style.display = 'block';
     } else {
         if(loginBtn) loginBtn.style.display = 'inline-block';
         if(regBtn) regBtn.style.display = 'inline-block';
         if(logoutBtn) logoutBtn.style.display = 'none';
+        if(totalValueContainer) totalValueContainer.style.display = 'none';
     }
 }
 
@@ -125,10 +129,38 @@ document.getElementById('headerLogoutBtn').addEventListener('click', (e) => {
     })
 })
 
+document.getElementById('addSkinForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('addSkinName').value; 
+    const price = document.getElementById('addSkinPrice').value;
+    const category_id = document.getElementById('addSkinCategory').value; 
+    const condition_id = document.getElementById('addSkinCondition').value;
+    const image_url = document.getElementById('addSkinImage').value; 
+
+    fetch('/api/skins', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name, price, category_id, condition_id, image_url})
+    })
+    .then(res => {
+        if(res.ok){
+            closeModal();
+            document.getElementById('addSkinForm').reset();
+            document.getElementById('addSkinModal').style.display = 'none';
+            fetchSkins();
+        } else {
+            return res.json().then(data => {
+                showMessage('addSkinMessage', data.error, true);
+            })
+        }
+    })
+    .catch(err => console.log('Error adding skin:', err)); 
+})
+
 function fetchSkins(){
     const container = document.getElementById('skinsContainer');
     const statusMessage = document.getElementById('statusMessage');
-    const totalValueSpan = document.getElementById('totalValue'); 
+    const totalValueSpan = document.getElementById('totalValueContainer'); 
 
     statusMessage.textContent = 'Retrieving data...'; 
     statusMessage.className = 'status-message'; 
@@ -156,10 +188,7 @@ function fetchSkins(){
             updateAuthUI(true);
             document.getElementById('unauthenticatedState').style.display = 'none';
 
-            if(skins.length === 0){
-                statusMessage.textContent = 'No objects in the collection. Please try add an item.'
-                return; 
-            }
+            
 
             statusMessage.style.display = 'none'; 
             container.style.display = 'grid'; 
@@ -173,7 +202,12 @@ function fetchSkins(){
                 const article = document.createElement('article');
                 article.classList.add('skin-card'); 
 
+                const imgSrc = skin.image_url ? skin.image_url : "https://placehold.co/400x300/2a2a2a/ffffff?text=No+Image";
+
                 article.innerHTML = `
+                <div style="text-align: center; margin-bottom: 10px; height: 150px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 5px; background: #1a1a1a;">
+                    <img src="${imgSrc}" alt="${skin.skin_name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                </div>
                 <div class="skin-info">
                     <h3>${skin.skin_name}</h3>
                     <div>
@@ -188,6 +222,29 @@ function fetchSkins(){
                 container.appendChild(article)
             });
             totalValueSpan.textContent = totalValue.toLocaleString('sv-SE'); 
+
+            const addCard = document.createElement('article');
+            addCard.classList.add('skin-card');
+            addCard.style.display = 'flex';
+            addCard.style.justifyContent = 'center';
+            addCard.style.alignItems = 'center';
+            addCard.style.cursor = 'pointer';
+            addCard.style.border = '2px dashed #ccc'; 
+
+            addCard.innerHTML = `
+               <div style="text-align: center; color: #888;">
+                    <h3 style="font-size: 3em; margin: 0; line-height: 1;">+</h3>
+                    <p style="margin: 5px 0 0 0; font-weight: bold;">Add Skin</p>
+                </div> 
+            `
+
+            addCard.addEventListener('click', () => {
+                document.getElementById('modalOverlay').style.display = 'flex';
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('registerModal').style.display = 'none';
+                document.getElementById('addSkinModal').style.display = 'block'
+            })
+            container.appendChild(addCard);
         })
         .catch(error =>{
             if(error.message !== 'NOT_LOGGED_IN'){
@@ -196,6 +253,7 @@ function fetchSkins(){
                 statusMessage.textContent ='Server error: Could not retrieve your items';
                 statusMessage.classList.add('Error');
                 statusMessage.style.display = 'block'
+                container.style.display = 'none'
             }
         });
 }

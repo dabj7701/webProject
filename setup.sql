@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS skinfolio;
 CREATE DATABASE IF NOT EXISTS skinfolio; 
 USE skinfolio; 
 
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS skins (
     condition_id INT NOT NULL, 
     name VARCHAR(100) NOT NULL,
     price DECIMAL(10, 2), 
+    image_url VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
     FOREIGN KEY (condition_id) REFERENCES conditions(id) ON DELETE CASCADE
