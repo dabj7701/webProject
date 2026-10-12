@@ -167,6 +167,7 @@ function editSkin(skin) {
     window.currentEditingSkin = skin; 
 
     document.getElementById('editSkinModal').style.display = 'flex';
+    document.getElementById('modalOverlay').style.display = 'block';
 }
 
 document.getElementById('closeEditModalBtn').addEventListener('click', () => {
