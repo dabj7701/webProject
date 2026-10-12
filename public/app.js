@@ -45,8 +45,6 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
 
-    console.log(username, password);
-
     fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -1,28 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Skinfolio</title>
     <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
+</head>
+
+<body>
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div class="brand">
-            <img src="cs2skins.jpg" alt="Skinfolio logo"> 
+            <img src="cs2skins.jpg" alt="Skinfolio logo">
             <h1>Skinfolio</h1>
         </div>
 
         <p id="totalValueContainer" style="display:none">Total collection value <span id="totalValue">0</span> kr</p>
         <div class="header-actions">
             <button id="headerLoginBtn">Login</button>
-            <button id="headerRegisterBtn">Register</button> 
+            <button id="headerRegisterBtn">Register</button>
             <button id="headerLogoutBtn" style="display: none;">Sign out</button>
-        </div>  
+        </div>
     </header>
 
     <main>
-        
+
 
         <section id="skinCollection">
             <h2>Your Skins</h2>
@@ -89,32 +91,65 @@
                 <button type="submit" style="margin-top: 10px;">Add</button>
             </form>
         </div>
-        
-        <div id="editSkinModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000;">
-            <div style="background: #2a2a2a; padding: 20px; border-radius: 8px; width: 300px; color: white; position: relative;">
-                <h3>Ändra Skin</h3>
-                <form id="editSkinForm">
-                    <input type="hidden" id="editSkinId">
-            
-                    <label style="display: block; margin-top: 10px;">Name:</label>
-                    <input type="text" id="editSkinName" style="width: 100%; padding: 5px; margin-top: 5px;" required>
-            
-                    <label style="display: block; margin-top: 10px;">Price (kr):</label>
-                    <input type="number" id="editSkinPrice" style="width: 100%; padding: 5px; margin-top: 5px;" required>
-            
-                    <label style="display: block; margin-top: 10px;">Image (URL):</label>
-                    <input type="text" id="editSkinImage" style="width: 100%; padding: 5px; margin-top: 5px;">
-            
-                    <div style="margin-top: 20px; display: flex; justify-content: space-between;">
-                        <button type="button" id="closeEditModalBtn" style="background: #7f8c8d; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px;">Avbryt</button>
-                        <button type="submit" style="background: #27ae60; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px;">Spara ändringar</button>
-                    </div>
-                </form>
-            </div>
-        </div>        
 
+
+        <div id="editSkinModal"
+            style="display: none; background: #2a2a2a; padding: 25px; border-radius: 8px; width: 300px; color: white; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+
+            <span id="closeEditModalBtn" style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 1.5em; font-weight: bold; color: #888;">&times;</span>
+
+            <h2 style="margin-top: 0; text-align: center; margin-bottom: 20px;">Edit Skin</h2>
+
+            <form id="editSkinForm" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="hidden" id="editSkinId">
+
+                <div>
+                    <label style="display: block; font-size: 0.9em; margin-bottom: 5px; color: #ccc;">Name</label>
+                    <input type="text" id="editSkinName"
+                        style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white; box-sizing: border-box;"
+                        required>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.9em; margin-bottom: 5px; color: #ccc;">Price (kr)</label>
+                    <input type="number" id="editSkinPrice"
+                        style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white; box-sizing: border-box;"
+                        required>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.9em; margin-bottom: 5px; color: #ccc;">Category</label>
+                    <select id="editSkinCategory" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white;" required>
+                        <option value="1">Sniper</option>
+                        <option value="2">Rifle</option>
+                        <option value="3">Pistol</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.9em; margin-bottom: 5px; color: #ccc;">Condition</label>
+                    <select id="editSkinCondition" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white;" required>
+                        <option value="5">Battle-Scared</option>
+                        <option value="4">Well-Worn</option>
+                        <option value="3">Field-tested</option>
+                        <option value="2">Minimal Wear</option>
+                        <option value="1">Factory New</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.9em; margin-bottom: 5px; color: #ccc;">Image URL</label>
+                    <input type="text" id="editSkinImage"
+                        style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white; box-sizing: border-box;">
+                </div>
+
+                <button type="submit"
+                    style="background: #3498db; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 1em; margin-top: 5px;">
+                    Save Changes
+                </button>
+            </form>
+        </div>
     </div>
 
     <script src="app.js"></script>
-  </body>
+</body>
+
 </html>
