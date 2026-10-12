@@ -5,18 +5,23 @@ const loginModal = document.getElementById('loginModal');
 const registerModal = document.getElementById('registerModal')
 
 function openModal(type){
+    closeModal(); 
+
     modalOverlay.style.display = 'flex';
+
     if(type === 'login'){
         loginModal.style.display = 'block';
-        registerModal.style.display = 'none';
     } else {
-        loginModal.style.display = 'none';
         registerModal.style.display = 'block';
     }
 }
 
 function closeModal(){
     modalOverlay.style.display = 'none';
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('registerModal').style.display = 'none';
+    document.getElementById('addSkinModal').style.display = 'none';
+    document.getElementById('editSkinModal').style.display = 'none';
 }
 
 document.getElementById('headerLoginBtn').addEventListener('click',() => openModal('login'));
@@ -164,13 +169,17 @@ function editSkin(skin) {
     document.getElementById('editSkinPrice').value = skin.price;
     document.getElementById('editSkinImage').value = skin.image_url || '';
 
+    document.getElementById('editSkinCategory').value = skin.category_id;
+    document.getElementById('editSkinCondition').value = skin.condition_id;
+
     window.currentEditingSkin = skin; 
 
-    document.getElementById('editSkinModal').style.display = 'flex';
+    document.getElementById('editSkinModal').style.display = 'block';
+    document.getElementById('modalOverlay').style.display = 'flex';
 }
 
 document.getElementById('closeEditModalBtn').addEventListener('click', () => {
-    document.getElementById('editSkinModal').style.display = 'none';
+    closeModal();
 });
 
 document.getElementById('editSkinForm').addEventListener('submit', (e) => {
@@ -179,10 +188,10 @@ document.getElementById('editSkinForm').addEventListener('submit', (e) => {
     const id = document.getElementById('editSkinId').value;
     const name = document.getElementById('editSkinName').value;
     const price = document.getElementById('editSkinPrice').value;
+    const category_id = document.getElementById('editSkinCategory').value;
+    const condition_id = document.getElementById('editSkinCondition').value;
     const image_url = document.getElementById('editSkinImage').value;
     
-    const category_id = window.currentEditingSkin.category_id;
-    const condition_id = window.currentEditingSkin.condition_id;
     const user_id = window.currentEditingSkin.user_id;
 
     fetch(`/api/skins/${id}`, {
@@ -192,7 +201,7 @@ document.getElementById('editSkinForm').addEventListener('submit', (e) => {
     })
     .then(res => {
         if(res.ok) {
-            document.getElementById('editSkinModal').style.display = 'none';
+            closeModal();
             fetchSkins();
         } else {
             return res.json().then(data => alert(data.error || 'Could not update skin!'));
@@ -321,8 +330,6 @@ function fetchSkins(){
 
             addCard.addEventListener('click', () => {
                 document.getElementById('modalOverlay').style.display = 'flex';
-                document.getElementById('loginModal').style.display = 'none';
-                document.getElementById('registerModal').style.display = 'none';
                 document.getElementById('addSkinModal').style.display = 'block'
             })
             container.appendChild(addCard);

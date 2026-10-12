@@ -98,11 +98,17 @@ app.delete('/api/skins/:id', async (req,res) => {
 })
 
 app.put('/api/skins/:id', async (req, res) => {
+    if(!req.session || !req.session.userId){
+        return res.status(401).json({error: 'Not logged in!'});
+    }
+
     let conn;
     try{
         const skinId = req.params.id; 
-        const { user_id, category_id, condition_id, name, price, image_url } = req.body;
-        if(!user_id || !category_id || !condition_id || !name || !price){
+        const user_id = req.session.userId;
+        const { category_id, condition_id, name, price, image_url } = req.body;
+
+        if(!name || !price || !category_id || !condition_id){
             return res.status(400).json({ error: 'All fields must be filled to update'});
         }
 
