@@ -22,7 +22,63 @@ const pool = mariadb.createPool({
     connectionLimit: 5
 }); 
 
+app.get('/api/users', async (req, res) => {
+    if(!req.session || !req.session.userId){
+        return res.status(401).json({error: 'Not logged in'})
+    }
+    if(req.session.role !== 'admin'){
+        return res.status(403).json({error: 'Forbidden: You do not have admin rights'})
+    }
 
+    let conn; 
+    try {
+        conn = await pool.getConnection();
+
+        const users = await conn.query('SELECT id, username, role FROM users');
+        res.status(200).json(users)
+    }catch (error) {
+        console.log('Database error: ', error);
+        res.status(500).json({error: 'Server error'})
+    }finally{
+        if(conn) conn.release();
+    }
+})
+
+app.get('/api/users/:id/skins', async (req, res) => {
+    if(!req.session || !req.session.userId){
+        return res.status(401).json({error: 'Not logged in'})
+    }
+    if(req.session.role !== 'admin'){
+        return res.status(403).json({error: 'Forbidden: You do not have admin rights'})
+    }
+
+    const targetUserId = req.params.id;
+    let conn;
+
+    try{
+        conn = await pool.getConnection();
+        const sqlQuery = `
+            SELECT 
+                skins.id,
+                skins.name AS skin_name,
+                categories.name AS category_name,
+                conditions.name AS condition_name,
+                skins.price,
+                skins.image_url
+            FROM skins 
+            JOIN categories ON skins.category_id = categories.id
+            JOIN conditions ON skins.condition_id = conditions.id
+            WHERE skins.user_id = ? 
+            `;
+        const userSkins = await conn.query(sqlQuery, [targetUserId]);
+        res.status(200).json(userSkins);
+    }catch(error) {
+        console.log('Database error:', error);
+        res.status(500).json({error: 'Server error'});
+    } finally {
+        if(conn) conn.release();
+    }
+})
 
 app.get('/api/skins', async (req, res) => {
     if(!req.session || !req.session.userId){
@@ -191,7 +247,12 @@ app.post('/api/login', async (req, res) => {
             if(match){
                 req.session.userId = user.id; 
                 req.session.username = user.username; 
-                res.json({ message: 'Logged in successfully! ', username: user.username})
+                req.session.role = user.role; 
+                res.json({
+                    message: 'Logged in successfully! ',
+                    username: user.username,
+                    role: user.role 
+                })
             } else {
                 res.status(401).json({error: 'Wrong password'});
             }

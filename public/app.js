@@ -22,7 +22,6 @@ function openModal(type){
         default:
             console.log('Did not find modal-type', edit)
     }
-   
 }
 
 function closeModal(){
@@ -31,6 +30,47 @@ function closeModal(){
     document.getElementById('registerModal').style.display = 'none';
     document.getElementById('addSkinModal').style.display = 'none';
     document.getElementById('editSkinModal').style.display = 'none';
+}
+
+function setPageState(state){
+    const unauthState = document.getElementById('unauthenticatedState');
+    const skinsCont = document.getElementById('skinsContainer');
+    const adminView = document.getElementById('adminView');
+    const totalVal = document.getElementById('totalValueContainer');
+    const statusMsg = document.getElementById('statusMessage');
+    const adminUsersList = document.getElementById('adminUsersContainer');
+    const adminInventory = document.getElementById('adminInventoryView');
+
+    if(unauthState) unauthState.style.display = 'none';
+    if(skinsCont) skinsCont.style.display = 'none';
+    if(adminView) adminView.style.display = 'none';
+    if(totalVal) totalVal.style.display = 'none';
+    if(statusMsg) statusMsg.style.display = 'none'; 
+    if(adminUsersList) adminUsersList.style.display = 'none';
+    if(adminInventory) adminInventory.style.display = 'none'
+
+    switch(state) {
+        case 'loggedOut':
+            if(unauthState) unauthState.style.display = 'block';
+            break;
+        case 'dashboard':
+            if(skinsCont) skinsCont.style.display = 'grid';
+            if(totalVal) totalVal.style.display = 'block';
+            break;
+        case 'admin':
+            if(adminView) adminView.style.display = 'block';
+            if(adminUsersList) adminUsersList.style.display = 'flex';
+            break;
+        case 'adminInventory':
+            if(adminView) adminView.style.display = 'block';
+            if(adminInventory) adminInventory.style.display = 'block';
+            break;
+        case 'loading':
+            if(statusMsg) statusMsg.style.display = 'block';
+            break;
+        default:
+            console.log('Unknown state given: ', state);
+    }
 }
 
 function showMessage(elementId, message, isError = true){
@@ -45,17 +85,24 @@ function updateAuthUI(isLoggenIn){
     const regBtn = document.getElementById('headerRegisterBtn');
     const logoutBtn = document.getElementById('headerLogoutBtn');
     const totalValueContainer = document.getElementById('totalValueContainer');
+    const adminBtn = document.getElementById('headerAdminBtn');
+    const backBtn = document.getElementById('headerBackToDashboardBtn');
+
+    const role = localStorage.getItem('userRole') ||'user';
     
     if(isLoggenIn){
         if(loginBtn) loginBtn.style.display = 'none';
         if(regBtn) regBtn.style.display = 'none';
         if(logoutBtn) logoutBtn.style.display = 'inline-block';
         if(totalValueContainer) totalValueContainer.style.display = 'block';
+        if(adminBtn) adminBtn.style.display = (role === 'admin') ? 'inline-block' : 'none';
     } else {
         if(loginBtn) loginBtn.style.display = 'inline-block';
         if(regBtn) regBtn.style.display = 'inline-block';
         if(logoutBtn) logoutBtn.style.display = 'none';
         if(totalValueContainer) totalValueContainer.style.display = 'none';
+        if(adminBtn) adminBtn.style.display = 'none';
+        if(backBtn) backBtn.style.display = 'none';
     }
 }
 
@@ -86,6 +133,101 @@ function deleteSkin(skinId) {
         }
     })
     .catch(err => console.log('Error deleting skin:', err));
+}
+
+function createUserCard(user){
+    const userCard = document.createElement('article');
+    userCard.classList.add('user-card');
+
+    userCard.style.border = '1px solid #333';
+    userCard.style.padding = '15px';
+    userCard.style.marginBottom = '10px';
+    userCard.style.borderRadius = '5px';
+    userCard.style.display = 'flex';
+    userCard.style.justifyContent = 'space-between';
+    userCard.style.alignItems = 'center';
+    userCard.style.background = '#1a1a1a';
+
+    userCard.innerHTML = `
+    <div> 
+        <h4 style="margin: 0;">${user.username}</h4>
+        <span style="font-size: 0.8em; color: #888> Role: ${user.role}</span>"
+    </div>
+    <button class="view-inventory-btn" style="background: #9b59b6; color: white; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer; font-weight: bold;">
+        View Inventory
+    </button>
+    `;
+
+    userCard.querySelector('.view-inventory-btn').addEventListener('click', () => {
+        viewUserInventory(user.id, user.username);
+    })
+    return userCard;
+}
+
+function loadAdminUsers() {
+    const container = document.getElementById('adminUsersContainer');
+    const statusMsg = document.getElementById('adminStatusMessage');
+
+    container.innerHTML = '';
+    statusMsg.textContent = 'Retrieving users...';
+    statusMsg.style.color = '#ccc';
+    statusMsg.style.display = 'block';
+
+    fetch('/api/users')
+        .then(response => {
+            if(!response.ok) throw new Error('Network response was not OK!');
+            return response.json();
+        })
+        .then(users => {
+            container.innerHTML = '';
+            if(users.length === 0){
+                statusMsg.textContent = 'No users found in database.'
+                return;
+            }
+            statusMsg.style.display = 'none';
+            users.forEach(user => {
+                container.appendChild(createUserCard(user));
+            })
+        })
+        .catch(error => {
+            console.log('Error with retrieving users: ', error);
+            showMessage('adminStatusMessage', 'Server error: Could not retrieve users', true);
+        })
+}
+
+function viewUserInventory(userId, username){
+    setPageState('adminInventory');
+
+    const skinsContainer = document.getElementById('adminUserSkinsContainer');
+    const title = document.getElementById('adminInventoryTitle');
+    const statusMsg = document.getElementById('adminStatusMessage');
+
+    title.textContent = `Viewing inventory for: ${username}`;
+    skinsContainer.innerHTML = '';
+    statusMsg.textContent = 'Retrieving skins...';
+    statusMsg.style.display = 'block';
+    statusMsg.style.color = '#ccc';
+
+    fetch(`/api/users/${userId}/skins`)
+    .then(response => {
+        if(!response.ok) throw new Error('Network response was not OK!');
+        return response.json();
+    })
+    .then(skins => {
+        statusMsg.style.display = 'none'
+        if(skins.length === 0){
+            skinsContainer.innerHTML = '<p style="text-align: center; width: 100%; grid-column: 1 / -1;">This user has no items in their collection.</p>'
+            return;
+        }
+
+        skins.forEach(skin => {
+            skinsContainer.appendChild(createSkinCard(skin))
+        })
+    }).catch(error => {
+        console.log('Error fetching user inventory:', error);
+        statusMsg.textContent = 'Server error: Could not load user inventory';
+        statusMsg.style.color = '#e74c3c';
+    })
 }
 
 function createSkinCard(skin){
@@ -152,19 +294,14 @@ function createAddSkinCard(){
 function fetchSkins(){
     const container = document.getElementById('skinsContainer');
     const statusMessage = document.getElementById('statusMessage');
-    const totalValueSpan = document.getElementById('totalValueContainer'); 
+    const totalValueSpan = document.getElementById('totalValue'); 
 
-    statusMessage.textContent = 'Retrieving data...'; 
-    statusMessage.className = 'status-message'; 
-    statusMessage.style.display = 'block'
-    container.style.display = 'none'
+    setPageState('loading');
 
     fetch('/api/skins')
         .then(response => {
             if(response.status === 401){
-                document.getElementById('unauthenticatedState').style.display = 'block'; 
-                document.getElementById('skinsContainer').style.display = 'none'; 
-                statusMessage.style.display = 'none';
+                setPageState('loggedOut');
                 updateAuthUI(false);
                 throw new Error('NOT_LOGGED_IN'); 
             }
@@ -175,10 +312,8 @@ function fetchSkins(){
             return response.json();
         })
         .then(skins => {
-            console.log('GET response data:', skins)
-
             updateAuthUI(true);
-            document.getElementById('unauthenticatedState').style.display = 'none';
+            setPageState('dashboard');
 
             statusMessage.style.display = 'none'; 
             container.style.display = 'grid'; 
@@ -197,14 +332,29 @@ function fetchSkins(){
         .catch(error =>{
             if(error.message !== 'NOT_LOGGED_IN'){
                 console.log('Error with retrieving', error);
-                document.getElementById('unauthenticatedState').style.display = 'none';
-                statusMessage.textContent ='Server error: Could not retrieve your items';
-                statusMessage.classList.add('Error');
-                statusMessage.style.display = 'block'
-                container.style.display = 'none'
+                setPageState('loading');
+                showMessage('statusMessage', 'Server error: Could not retrieve your items', true);
             }
         });
 }
+
+document.getElementById('backToUserListBtn').addEventListener('click', () => {
+    setPageState('admin'); // Detta tar oss direkt tillbaka till användarlistan!
+});
+
+document.getElementById('headerAdminBtn').addEventListener('click', () => {
+    setPageState('admin');
+    document.getElementById('headerAdminBtn').style.display = 'none';
+    document.getElementById('headerBackToDashboardBtn').style.display = 'inline-block';
+    loadAdminUsers();
+})
+
+document.getElementById('headerBackToDashboardBtn').addEventListener('click', () => {
+    setPageState('dashboard');
+    document.getElementById('headerAdminBtn').style.display = 'inline-block';
+    document.getElementById('headerBackToDashboardBtn').style.display = 'none';
+    fetchSkins();
+})
 
 document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -222,6 +372,7 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
             closeModal();
             document.getElementById('loginForm').reset();
             document.getElementById('unauthenticatedState').style.display = 'none';
+            localStorage.setItem('userRole', res.body.role);
             fetchSkins();
         } else {
             showMessage('loginMessage', res.body.error);
@@ -262,16 +413,13 @@ document.getElementById('headerLogoutBtn').addEventListener('click', (e) => {
     })
     .then(res => {
         if(res.ok){
+            localStorage.removeItem('userRole');
+
             updateAuthUI(false);
+            setPageState('loggedOut');
 
-            document.getElementById('unauthenticatedState').style.display = 'block';
-
-            const container = document.getElementById('skinsContainer');
-            container.style.display = 'none';
-            container.innerHTML = '';
-
-            document.getElementById('totalValueContainer').textContent = '0';
-            document.getElementById('statusMessage').style.display = 'none';
+            document.getElementById('skinsContainer').innerHTML = '';
+            document.getElementById('totalValue').textContent = '0';
         }
     }).catch(error => {
         console.log('Error while trying to log out', error); 

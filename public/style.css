@@ -53,7 +53,7 @@ a {
 }
 
 
-header {
+.main-header {
     min-height: 75px;
     padding: 0 50px;
 
@@ -162,27 +162,6 @@ header h1::first-letter {
     background: rgba(255, 70, 85, 0.1);
     border-color: rgba(255, 70, 85, 0.25);
 }
-
-
-#totalValueContainer {
-    margin-right: 20px;
-
-    color: #777e8c;
-
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.7px;
-}
-
-#totalValue {
-    margin-left: 5px;
-
-    color: #4fd879;
-
-    font-size: 15px;
-    font-weight: 700;
-}
-
 
 main {
     width: min(1200px, calc(100% - 40px));

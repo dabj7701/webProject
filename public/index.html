@@ -9,30 +9,52 @@
 </head>
 
 <body>
-    <header style="display: flex; justify-content: space-between; align-items: center;">
+    <header class="main-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div class="brand">
             <img src="cs2skins.jpg" alt="Skinfolio logo">
             <h1>Skinfolio</h1>
         </div>
 
-        <p id="totalValueContainer" style="display:none">Total collection value <span id="totalValue">0</span> kr</p>
-        <div class="header-actions">
+        <nav class="header-actions">
             <button id="headerLoginBtn">Login</button>
             <button id="headerRegisterBtn">Register</button>
+            <button id="headerAdminBtn" style="display: none;">Admin Panel</button>
+            <button id="headerBackToDashboardBtn" style="display: none;">Back To Dashboard</button>
             <button id="headerLogoutBtn" style="display: none;">Sign out</button>
-        </div>
+        </nav>
     </header>
 
     <main>
-
-
         <section id="skinCollection">
-            <h2>Your Skins</h2>
-            <div id="unauthenticatedState" style="text-align: center; margin-top: 50px;">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                <h2 style="margin: 0;">Your Skins</h2>
+                <p id="totalValueContainer" style="display:none; margin: 0; font-weight: bold;">
+                    Total collection value: <span id="totalValue">0</span> kr
+                </p>
+            </header>  
+            <section id="unauthenticatedState" style="text-align: center; margin-top: 50px;">
                 <p>You have to be <a href="#" id="textLoginLink"> logged in</a> to see your collection</p>
-            </div>
-            <div id="statusMessage" class="status-message" style="display: none;">Retrieving skin data...</div>
-            <div id="skinsContainer" class="skins-container" style="display: none;"></div>
+            </section>
+            <p id="statusMessage" class="status-message" style="display: none;">Retrieving skin data...</p>
+            <section id="skinsContainer" class="skins-container" style="display: none;"></section>
+        </section>
+
+        <section id="adminView" style="display: none; padding: 20px">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                 <h2>Admin Panel: Manage Users</h2>
+            </header>
+            <p id="adminStatusMessage" class="status-message" style="display: none; margin-bottom: 15px;"></p>
+            <section id="adminUsersContainer" style="display: flex; flex-direction: column; gap: 10px;"></section>
+
+            <section id="adminInventoryView" style="display: none; margin-top: 20px;">
+                <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 id="adminInventoryTitle">User Inventory</h3>
+                    <button id="backToUserListBtn" style="background: #7f8c8d; color: white; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-weight: bold;">
+                        Back to Users
+                    </button>
+                </header>
+                <section id="adminUserSkinsContainer" class="skins-container"></section>
+            </section>
         </section>
     </main>
 
