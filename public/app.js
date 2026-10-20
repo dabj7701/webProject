@@ -1,35 +1,37 @@
-const modalOverlay = document.getElementById('modalOverlay'); 
+let currentEditingSkin = null; 
+let currentViewedUser = null;
+let skinToDelete = null;
+
 const loginModal = document.getElementById('loginModal');
-const registerModal = document.getElementById('registerModal')
+const registerModal = document.getElementById('registerModal');
 
 function openModal(type){
     closeModal();
-    modalOverlay.style.display = 'flex';
 
     switch(type){
         case 'login':
-            document.getElementById('loginModal').style.display = 'block';
+            document.getElementById('loginModal').showModal();
             break;
         case 'register':
-            document.getElementById('registerModal').style.display = 'block';
+            document.getElementById('registerModal').showModal();
             break;
         case 'add':
-            document.getElementById('addSkinModal').style.display = 'block';
+            document.getElementById('addSkinModal').showModal();
             break;
         case 'edit':
-            document.getElementById('editSkinModal').style.display = 'block';
+            document.getElementById('editSkinModal').showModal();
             break;
+        case 'confirm':
+            document.getElementById('confirmModal').showModal();
+            break; 
         default:
-            console.log('Did not find modal-type', edit)
+            console.log('Did not find modal-type', type);
     }
 }
 
 function closeModal(){
-    modalOverlay.style.display = 'none';
-    document.getElementById('loginModal').style.display = 'none';
-    document.getElementById('registerModal').style.display = 'none';
-    document.getElementById('addSkinModal').style.display = 'none';
-    document.getElementById('editSkinModal').style.display = 'none';
+    const modals = document.querySelectorAll('dialog.modal-content');
+    modals.forEach(modal => modal.close())
 }
 
 function setPageState(state){
@@ -40,36 +42,51 @@ function setPageState(state){
     const statusMsg = document.getElementById('statusMessage');
     const adminUsersList = document.getElementById('adminUsersContainer');
     const adminInventory = document.getElementById('adminInventoryView');
+    const adminCategories = document.getElementById('adminCategoriesView');
+    const dashboardToolbar = document.getElementById('dashboardToolbar');
 
-    if(unauthState) unauthState.style.display = 'none';
-    if(skinsCont) skinsCont.style.display = 'none';
-    if(adminView) adminView.style.display = 'none';
-    if(totalVal) totalVal.style.display = 'none';
-    if(statusMsg) statusMsg.style.display = 'none'; 
-    if(adminUsersList) adminUsersList.style.display = 'none';
-    if(adminInventory) adminInventory.style.display = 'none'
+    if(unauthState) unauthState.classList.add('hidden');
+    if(skinsCont) skinsCont.classList.add('hidden');
+    if(adminView) adminView.classList.add('hidden');
+    if(totalVal) totalVal.classList.add('hidden');
+    if(statusMsg) statusMsg.classList.add('hidden'); 
+    if(adminUsersList) adminUsersList.classList.add('hidden');
+    if(adminInventory) adminInventory.classList.add('hidden');
+    if(adminCategories) adminCategories.classList.add('hidden');
+    if(dashboardToolbar) dashboardToolbar.classList.add('hidden');
 
     switch(state) {
         case 'loggedOut':
-            if(unauthState) unauthState.style.display = 'block';
+            if(unauthState) unauthState.classList.remove('hidden');
             break;
         case 'dashboard':
-            if(skinsCont) skinsCont.style.display = 'grid';
-            if(totalVal) totalVal.style.display = 'block';
+            if(skinsCont) skinsCont.classList.remove('hidden');
+            if(totalVal) totalVal.classList.remove('hidden');
+            if(dashboardToolbar) dashboardToolbar.classList.remove('hidden');
             break;
         case 'admin':
-            if(adminView) adminView.style.display = 'block';
-            if(adminUsersList) adminUsersList.style.display = 'flex';
+            if(adminView) adminView.classList.remove('hidden');
+            if(adminUsersList) adminUsersList.classList.remove('hidden');
+            if(adminCategories) adminCategories.classList.remove('hidden');
             break;
         case 'adminInventory':
-            if(adminView) adminView.style.display = 'block';
-            if(adminInventory) adminInventory.style.display = 'block';
+            if(adminView) adminView.classList.remove('hidden');
+            if(adminInventory) adminInventory.classList.remove('hidden');
             break;
         case 'loading':
-            if(statusMsg) statusMsg.style.display = 'block';
+            if(statusMsg) statusMsg.classList.remove('hidden');
             break;
         default:
             console.log('Unknown state given: ', state);
+    }
+}
+
+function reloadCurrentView() {
+    const adminInventory = document.getElementById('adminInventoryView')
+    if(!adminInventory.classList.contains('hidden') && currentViewedUser){
+        viewUserInventory(currentViewedUser.id, currentViewedUser.username)
+    } else {
+        fetchSkins()
     }
 }
 
@@ -77,32 +94,33 @@ function showMessage(elementId, message, isError = true){
     const el = document.getElementById(elementId);
     el.textContent = message; 
     el.style.color = isError ? 'red' : 'green'; 
-    el.style.display = 'block'
+    el.classList.remove('hidden');
 }
 
-function updateAuthUI(isLoggenIn){
+function updateAuthUI(isLoggedIn){
     const loginBtn = document.getElementById('headerLoginBtn');
     const regBtn = document.getElementById('headerRegisterBtn');
     const logoutBtn = document.getElementById('headerLogoutBtn');
-    const totalValueContainer = document.getElementById('totalValueContainer');
     const adminBtn = document.getElementById('headerAdminBtn');
     const backBtn = document.getElementById('headerBackToDashboardBtn');
 
-    const role = localStorage.getItem('userRole') ||'user';
+    const role = localStorage.getItem('userRole') || 'user';
     
-    if(isLoggenIn){
-        if(loginBtn) loginBtn.style.display = 'none';
-        if(regBtn) regBtn.style.display = 'none';
-        if(logoutBtn) logoutBtn.style.display = 'inline-block';
-        if(totalValueContainer) totalValueContainer.style.display = 'block';
-        if(adminBtn) adminBtn.style.display = (role === 'admin') ? 'inline-block' : 'none';
+    if(isLoggedIn){
+        if(loginBtn) loginBtn.classList.add('hidden');
+        if(regBtn) regBtn.classList.add('hidden');
+        if(logoutBtn) logoutBtn.classList.remove('hidden');
+        
+        if(adminBtn) {
+            if(role === 'admin') adminBtn.classList.remove('hidden');
+            else adminBtn.classList.add('hidden');
+        }
     } else {
-        if(loginBtn) loginBtn.style.display = 'inline-block';
-        if(regBtn) regBtn.style.display = 'inline-block';
-        if(logoutBtn) logoutBtn.style.display = 'none';
-        if(totalValueContainer) totalValueContainer.style.display = 'none';
-        if(adminBtn) adminBtn.style.display = 'none';
-        if(backBtn) backBtn.style.display = 'none';
+        if(loginBtn) loginBtn.classList.remove('hidden');
+        if(regBtn) regBtn.classList.remove('hidden');
+        if(logoutBtn) logoutBtn.classList.add('hidden');
+        if(adminBtn) adminBtn.classList.add('hidden');
+        if(backBtn) backBtn.classList.add('hidden');
     }
 }
 
@@ -112,55 +130,47 @@ function editSkin(skin) {
     document.getElementById('editSkinPrice').value = skin.price;
     document.getElementById('editSkinImage').value = skin.image_url || '';
 
-    window.currentEditingSkin = skin; 
+    currentEditingSkin = skin; 
 
     openModal('edit');
 }
 
 function deleteSkin(skinId) {
-    if(!confirm('Are you sure that you want to delete this item from your collection?')) {
-        return;
-    }
-
-    fetch(`/api/skins/${skinId}`, {
-        method: 'DELETE'
-    })
-    .then(res => {
-        if(res.ok) {
-            fetchSkins();
-        } else {
-            alert('Could not remove item!');
-        }
-    })
-    .catch(err => console.log('Error deleting skin:', err));
+    skinToDelete = skinId; 
+    openModal('confirm');
 }
 
 function createUserCard(user){
     const userCard = document.createElement('article');
     userCard.classList.add('user-card');
-
-    userCard.style.border = '1px solid #333';
-    userCard.style.padding = '15px';
-    userCard.style.marginBottom = '10px';
-    userCard.style.borderRadius = '5px';
-    userCard.style.display = 'flex';
-    userCard.style.justifyContent = 'space-between';
-    userCard.style.alignItems = 'center';
-    userCard.style.background = '#1a1a1a';
-
     userCard.innerHTML = `
     <div> 
         <h4 style="margin: 0;">${user.username}</h4>
-        <span style="font-size: 0.8em; color: #888> Role: ${user.role}</span>"
+        <span style="font-size: 0.8em; color: #888;"> Role: ${user.role}</span>
     </div>
-    <button class="view-inventory-btn" style="background: #9b59b6; color: white; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer; font-weight: bold;">
-        View Inventory
-    </button>
+    <div style="display: flex; gap: 10px;">
+        <button class="delete-user-btn btn btn-danger">Delete</button>
+        <button class="view-inventory-btn btn btn-purple">View Inventory</button>
+    </div>
     `;
+
+    userCard.querySelector('.delete-user-btn').addEventListener('click', () => {
+        if(confirm(`Are you sure you want to delete ${user.username} and all their skins?`)) {
+            fetch(`/api/users/${user.id}`, { method: 'DELETE' })
+            .then(res => {
+                if(res.ok) {
+                    loadAdminUsers();
+                } else {
+                    res.json().then(data => alert(data.error));
+                }
+            })
+            .catch(err => console.log('Error deleting user:', err));
+        }
+    });
 
     userCard.querySelector('.view-inventory-btn').addEventListener('click', () => {
         viewUserInventory(user.id, user.username);
-    })
+    });
     return userCard;
 }
 
@@ -171,7 +181,7 @@ function loadAdminUsers() {
     container.innerHTML = '';
     statusMsg.textContent = 'Retrieving users...';
     statusMsg.style.color = '#ccc';
-    statusMsg.style.display = 'block';
+    statusMsg.classList.remove('hidden');
 
     fetch('/api/users')
         .then(response => {
@@ -181,22 +191,23 @@ function loadAdminUsers() {
         .then(users => {
             container.innerHTML = '';
             if(users.length === 0){
-                statusMsg.textContent = 'No users found in database.'
+                statusMsg.textContent = 'No users found in database.';
                 return;
             }
-            statusMsg.style.display = 'none';
+            statusMsg.classList.add('hidden');
             users.forEach(user => {
                 container.appendChild(createUserCard(user));
-            })
+            });
         })
         .catch(error => {
             console.log('Error with retrieving users: ', error);
             showMessage('adminStatusMessage', 'Server error: Could not retrieve users', true);
-        })
+        });
 }
 
 function viewUserInventory(userId, username){
     setPageState('adminInventory');
+    currentViewedUser = { id: userId, username: username};
 
     const skinsContainer = document.getElementById('adminUserSkinsContainer');
     const title = document.getElementById('adminInventoryTitle');
@@ -205,8 +216,8 @@ function viewUserInventory(userId, username){
     title.textContent = `Viewing inventory for: ${username}`;
     skinsContainer.innerHTML = '';
     statusMsg.textContent = 'Retrieving skins...';
-    statusMsg.style.display = 'block';
     statusMsg.style.color = '#ccc';
+    statusMsg.classList.remove('hidden');
 
     fetch(`/api/users/${userId}/skins`)
     .then(response => {
@@ -214,20 +225,19 @@ function viewUserInventory(userId, username){
         return response.json();
     })
     .then(skins => {
-        statusMsg.style.display = 'none'
+        statusMsg.classList.add('hidden');
         if(skins.length === 0){
-            skinsContainer.innerHTML = '<p style="text-align: center; width: 100%; grid-column: 1 / -1;">This user has no items in their collection.</p>'
+            skinsContainer.innerHTML = '<p style="text-align: center; width: 100%; grid-column: 1 / -1;">This user has no items in their collection.</p>';
             return;
         }
 
         skins.forEach(skin => {
-            skinsContainer.appendChild(createSkinCard(skin))
-        })
+            skinsContainer.appendChild(createSkinCard(skin));
+        });
     }).catch(error => {
         console.log('Error fetching user inventory:', error);
-        statusMsg.textContent = 'Server error: Could not load user inventory';
-        statusMsg.style.color = '#e74c3c';
-    })
+        showMessage('adminStatusMessage', 'Server error: Could not load user inventory', true);
+    });
 }
 
 function createSkinCard(skin){
@@ -247,12 +257,12 @@ function createSkinCard(skin){
                     <span class="condition">${skin.condition_name}</span>
                 </div>
         </div>
-        <div class="skin-price" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <div class="skin-price flex-between" style="margin-top: 10px;">
             <span>${skin.price} kr</span>
-            <button class="edit-btn" style="background: #3498db; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-weight: bold; font-size: 0.8em;">Edit</button>                
-            <button class="delete-btn" data-id="${skin.id}" style="background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-weight: bold; font-size: 0.8em; line-height: 1;">
-                Delete
-            </button>
+            <div>
+                <button class="edit-btn btn btn-primary btn-sm">Edit</button>                
+                <button class="delete-btn btn btn-danger btn-sm" data-id="${skin.id}">Delete</button>
+            </div>
         </div>
      `;
 
@@ -271,23 +281,20 @@ function createSkinCard(skin){
 
 function createAddSkinCard(){
     const addCard = document.createElement('article');
-    addCard.classList.add('skin-card');
-    addCard.style.display = 'flex';
-    addCard.style.justifyContent = 'center';
-    addCard.style.alignItems = 'center';
-    addCard.style.cursor = 'pointer';
-    addCard.style.border = '2px dashed #ccc'; 
+    addCard.classList.add('skin-card', 'add-skin-card');
+    addCard.setAttribute('role', 'button'); 
+    addCard.setAttribute('tabindex', '0');
+    addCard.setAttribute('aria-label', 'Add new skin'); 
 
     addCard.innerHTML = `
-        <div style="text-align: center; color: #888;">
+        <div aria-hidden="true">
             <h3 style="font-size: 3em; margin: 0; line-height: 1;">+</h3>
-            <p style="margin: 5px 0 0 0; font-weight: bold;">Add Skin</p>
+            <p style="margin: 0; font-weight: bold;">Add Skin</p>
         </div> 
-    `
-
+    `;
     addCard.addEventListener('click', () => {
-        openModal('add')
-    })
+        openModal('add');
+    });
     return addCard;
 }
 
@@ -297,6 +304,8 @@ function fetchSkins(){
     const totalValueSpan = document.getElementById('totalValue'); 
 
     setPageState('loading');
+    statusMessage.textContent = 'Retrieving data...';
+    statusMessage.style.color = ''; // Återställ ifall det var rött tidigare
 
     fetch('/api/skins')
         .then(response => {
@@ -307,18 +316,15 @@ function fetchSkins(){
             }
 
             if(!response.ok){
-                throw new Error('Network response was not OK')
+                throw new Error('Network response was not OK');
             }
             return response.json();
         })
         .then(skins => {
             updateAuthUI(true);
             setPageState('dashboard');
-
-            statusMessage.style.display = 'none'; 
-            container.style.display = 'grid'; 
+        
             container.innerHTML = ''; 
-
             let totalValue = 0; 
 
             skins.forEach(skin => {
@@ -328,6 +334,7 @@ function fetchSkins(){
             totalValueSpan.textContent = totalValue.toLocaleString('sv-SE'); 
 
             container.appendChild(createAddSkinCard());
+            applyFiltersAndSort();
         })
         .catch(error =>{
             if(error.message !== 'NOT_LOGGED_IN'){
@@ -338,23 +345,154 @@ function fetchSkins(){
         });
 }
 
+function loadAdminCategories() {
+    const list = document.getElementById('adminCategoryList');
+    list.innerHTML = '<li style="color: #ccc;">Loading categories...</li>';
+
+    fetch('/api/categories')
+    .then(res => res.json())
+    .then(categories => {
+        list.innerHTML = '';
+        categories.forEach(cat => {
+            const li = document.createElement('li');
+            li.style.display = 'flex';
+            li.style.justifyContent = 'space-between';
+            li.style.padding = '10px';
+            li.style.background = '#1a1a1a';
+            li.style.border = '1px solid #333';
+            li.style.borderRadius = '4px';
+
+            li.innerHTML = `
+                <span>${cat.name}</span>
+                ${cat.name !== 'Uncategorized' ? `<button class="delete-cat-btn" data-id="${cat.id}" style="background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer;">Delete</button>` : ''}
+            `;
+
+            const delBtn = li.querySelector('.delete-cat-btn');
+            if(delBtn) {
+                delBtn.addEventListener('click', () => {
+                    if(confirm(`Are you sure you want to delete "${cat.name}"? Items will be moved to Uncategorized.`)) {
+                        deleteCategory(cat.id);
+                    }
+                });
+            }
+            list.appendChild(li);
+        });
+    })
+    .catch(err => console.log('Error fetching categories:', err));
+}
+
+function deleteCategory(id) {
+    fetch(`/api/categories/${id}`, { method: 'DELETE' })
+    .then(res => {
+        if(res.ok) {
+            loadAdminCategories();
+            loadCategoriesToSelects();
+        } else {
+            res.json().then(data => alert(data.error));
+        }
+    });
+}
+
+function loadCategoriesToSelects() {
+    fetch('/api/categories')
+        .then(res => {
+            if(!res.ok) throw new Error('Could not fetch categories');
+            return res.json();
+        })
+        .then(categories => {
+            const addSelect = document.getElementById('addSkinCategory');
+            const editSelect = document.getElementById('editSkinCategory');
+            const filterSelect = document.getElementById('filterCategory');
+            
+            addSelect.innerHTML = '';
+            editSelect.innerHTML = '';
+            filterSelect.innerHTML = '<option value="all">All Categories</option>';
+
+            categories.forEach(cat => {
+                if (cat.name !== 'Uncategorized') {
+                    const optionHtml = `<option value="${cat.id}">${cat.name}</option>`;
+                    addSelect.innerHTML += optionHtml;
+                    editSelect.innerHTML += optionHtml;
+
+                    const filterOption = `<option value="${cat.name.toLowerCase()}">${cat.name}</option>`;
+                    filterSelect.innerHTML += filterOption;
+                }
+            });
+        })
+        .catch(err => console.log('Error updating category selects:', err));
+}
+
+function applyFiltersAndSort() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const selectedCategory = document.getElementById('filterCategory').value.toLowerCase();
+    const sortValue = document.getElementById('sortSkins').value;
+    const container = document.getElementById('skinsContainer');
+    const cards = Array.from(container.querySelectorAll('.skin-card'));
+    const addCard = cards.find(card => card.querySelector('h3') && card.querySelector('h3').textContent === '+');
+    const skinCards = cards.filter(card => card !== addCard);
+
+    skinCards.forEach(card => {
+        const name = card.querySelector('h3').textContent.toLowerCase();
+        const category = card.querySelector('.category').textContent.toLowerCase();
+        const matchesSearch = name.includes(searchTerm);
+        const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
+
+        if (matchesSearch && matchesCategory) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    if (sortValue !== 'default') {
+        skinCards.sort((a, b) => {
+            const priceTextA = a.querySelector('.skin-price span').textContent.replace(' kr', '').replace(/\s/g, '');
+            const priceTextB = b.querySelector('.skin-price span').textContent.replace(' kr', '').replace(/\s/g, '');
+            const priceA = Number(priceTextA);
+            const priceB = Number(priceTextB);
+
+            if (sortValue === 'price_asc') return priceA - priceB;
+            if (sortValue === 'price_desc') return priceB - priceA;
+            return 0;
+        });
+    }
+
+    skinCards.forEach(card => container.appendChild(card));
+    if (addCard) container.appendChild(addCard);
+}
+
+document.querySelectorAll('dialog.modal-content').forEach(dialog => {
+    dialog.addEventListener('click', (e) => {
+        const dialogDimensions = dialog.getBoundingClientRect();
+        if (
+            e.clientX < dialogDimensions.left ||
+            e.clientX > dialogDimensions.right ||
+            e.clientY < dialogDimensions.top ||
+            e.clientY > dialogDimensions.bottom
+        ) {
+            dialog.close();
+        }
+    });
+});
+
 document.getElementById('backToUserListBtn').addEventListener('click', () => {
-    setPageState('admin'); // Detta tar oss direkt tillbaka till användarlistan!
+    setPageState('admin');
 });
 
 document.getElementById('headerAdminBtn').addEventListener('click', () => {
     setPageState('admin');
-    document.getElementById('headerAdminBtn').style.display = 'none';
-    document.getElementById('headerBackToDashboardBtn').style.display = 'inline-block';
+    document.getElementById('headerAdminBtn').classList.add('hidden');
+    document.getElementById('headerBackToDashboardBtn').classList.remove('hidden');
     loadAdminUsers();
-})
+    loadAdminCategories();
+});
 
 document.getElementById('headerBackToDashboardBtn').addEventListener('click', () => {
     setPageState('dashboard');
-    document.getElementById('headerAdminBtn').style.display = 'inline-block';
-    document.getElementById('headerBackToDashboardBtn').style.display = 'none';
+    document.getElementById('headerAdminBtn').classList.remove('hidden');
+    document.getElementById('headerBackToDashboardBtn').classList.add('hidden');
     fetchSkins();
-})
+});
 
 document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -371,9 +509,8 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
         if(res.status === 200){
             closeModal();
             document.getElementById('loginForm').reset();
-            document.getElementById('unauthenticatedState').style.display = 'none';
             localStorage.setItem('userRole', res.body.role);
-            fetchSkins();
+            fetchSkins(); // fetchSkins hanterar nu att sätta dashboard-vyn och uppdatera AuthUI!
         } else {
             showMessage('loginMessage', res.body.error);
         }
@@ -399,8 +536,8 @@ document.getElementById('registerForm').addEventListener('submit', (e) =>{
         } else {
             showMessage('registerMessage', res.body.error, true);
         }
-    })
-})
+    });
+});
 
 document.getElementById('closeEditModalBtn').addEventListener('click', () => {
     closeModal();
@@ -414,7 +551,6 @@ document.getElementById('headerLogoutBtn').addEventListener('click', (e) => {
     .then(res => {
         if(res.ok){
             localStorage.removeItem('userRole');
-
             updateAuthUI(false);
             setPageState('loggedOut');
 
@@ -423,8 +559,8 @@ document.getElementById('headerLogoutBtn').addEventListener('click', (e) => {
         }
     }).catch(error => {
         console.log('Error while trying to log out', error); 
-    })
-})
+    });
+});
 
 document.getElementById('addSkinForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -443,16 +579,15 @@ document.getElementById('addSkinForm').addEventListener('submit', (e) => {
         if(res.ok){
             closeModal();
             document.getElementById('addSkinForm').reset();
-            document.getElementById('addSkinModal').style.display = 'none';
             fetchSkins();
         } else {
             return res.json().then(data => {
                 showMessage('addSkinMessage', data.error, true);
-            })
+            });
         }
     })
     .catch(err => console.log('Error adding skin:', err)); 
-})
+});
 
 document.getElementById('editSkinForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -464,7 +599,7 @@ document.getElementById('editSkinForm').addEventListener('submit', (e) => {
     const condition_id = document.getElementById('editSkinCondition').value;
     const image_url = document.getElementById('editSkinImage').value;
     
-    const user_id = window.currentEditingSkin.user_id;
+    const user_id = currentEditingSkin.user_id;
 
     fetch(`/api/skins/${id}`, {
         method: 'PUT',
@@ -474,24 +609,75 @@ document.getElementById('editSkinForm').addEventListener('submit', (e) => {
     .then(res => {
         if(res.ok) {
             closeModal();
-            fetchSkins();
+            reloadCurrentView();
         } else {
-            return res.json().then(data => alert(data.error || 'Could not update skin!'));
+            return res.json().then(data => {
+                 showMessage('statusMessage', data.error || 'Could not update skin!', true);
+                 setPageState('loading'); 
+                 setTimeout(reloadCurrentView, 2000);
+            });
         }
     })
     .catch(err => console.log('Error updating skin:', err));
+});
+
+document.getElementById('confirmNoBtn').addEventListener('click', () => {
+    skinToDelete = null; 
+    closeModal();
+})
+
+document.getElementById('confirmYesBtn').addEventListener('click', () => {
+    if(!skinToDelete) return; 
+
+    fetch(`/api/skins/${skinToDelete}`, {method: 'DELETE'})
+    .then(res => {
+        if(res.ok){
+          closeModal();
+            skinToDelete = null;
+            reloadCurrentView();
+        }else {
+            closeModal();
+           showMessage('statusMessage', 'Could not remove item!', true);
+           setImmediate(reloadCurrentView, 2000);
+        }
+    })
+    .catch(err => console.log('Error deleting skin: ', err));
+})
+
+document.getElementById('addCategoryBtn').addEventListener('click', () => {
+    const nameInput = document.getElementById('newCategoryName');
+    const name = nameInput.value.trim();
+    
+    if(!name) return;
+
+    fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+    })
+    .then(res => {
+        if(res.ok) {
+            nameInput.value = '';
+            loadAdminCategories();
+            loadCategoriesToSelects();
+        } else {
+            res.json().then(data => alert(data.error));
+        }
+    });
 });
 
 document.getElementById('headerLoginBtn').addEventListener('click',() => openModal('login'));
 document.getElementById('textLoginLink').addEventListener('click', (e) => {e.preventDefault(); openModal('login');});
 document.getElementById('headerRegisterBtn').addEventListener('click', () => openModal('register'));
 document.getElementById('switchToRegister').addEventListener('click', (e) => {e.preventDefault(); openModal('register');});
-document.getElementById('switchToLogin').addEventListener('click', (e) => {e.preventDefault(); openModal('login')});
+document.getElementById('switchToLogin').addEventListener('click', (e) => {e.preventDefault(); openModal('login');});
 document.getElementById('closeAddSkin').addEventListener('click', closeModal);
 
 document.getElementById('closeLogin').addEventListener('click', closeModal);
 document.getElementById('closeRegister').addEventListener('click', closeModal);
 
-modalOverlay.addEventListener('click', (e) => {
-    if(e.target === modalOverlay) closeModal();
-})
+document.getElementById('searchInput').addEventListener('input', applyFiltersAndSort);
+document.getElementById('filterCategory').addEventListener('change', applyFiltersAndSort);
+document.getElementById('sortSkins').addEventListener('change', applyFiltersAndSort);
+
+loadCategoriesToSelects();

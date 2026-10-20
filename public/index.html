@@ -18,9 +18,9 @@
         <nav class="header-actions">
             <button id="headerLoginBtn">Login</button>
             <button id="headerRegisterBtn">Register</button>
-            <button id="headerAdminBtn" style="display: none;">Admin Panel</button>
-            <button id="headerBackToDashboardBtn" style="display: none;">Back To Dashboard</button>
-            <button id="headerLogoutBtn" style="display: none;">Sign out</button>
+            <button id="headerAdminBtn" class="hidden">Admin Panel</button>
+            <button id="headerBackToDashboardBtn" class="hidden">Back To Dashboard</button>
+            <button id="headerLogoutBtn" class="hidden">Sign out</button>
         </nav>
     </header>
 
@@ -28,25 +28,49 @@
         <section id="skinCollection">
             <header style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
                 <h2 style="margin: 0;">Your Skins</h2>
-                <p id="totalValueContainer" style="display:none; margin: 0; font-weight: bold;">
+                <p id="totalValueContainer" class="hidden" style="margin: 0; font-weight: bold;">
                     Total collection value: <span id="totalValue">0</span> kr
                 </p>
             </header>  
             <section id="unauthenticatedState" style="text-align: center; margin-top: 50px;">
                 <p>You have to be <a href="#" id="textLoginLink"> logged in</a> to see your collection</p>
             </section>
-            <p id="statusMessage" class="status-message" style="display: none;">Retrieving skin data...</p>
-            <section id="skinsContainer" class="skins-container" style="display: none;"></section>
+            <p id="statusMessage" class="status-message hidden">Retrieving skin data...</p>
+
+            <form id="dashboardToolbar" class="dashboard-toolbar hidden" onsubmit="event.preventDefault();">
+                <input type="text" id="searchInput" class="input-field" style="flex: 1; min-width: 200px;" aria-label="Search skins by name" placeholder="Search skins by name...">
+    
+                <select id="filterCategory" class="input-field" style="width: auto;" aria-label="Filter by category">
+                    <option value="all">All Categories</option>
+                </select>
+
+                <select id="sortSkins" class="input-field" style="width: auto;" aria-label="Sort skins by price">
+                    <option value="default">Sort by...</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="price_asc">Price: Low to High</option>
+                </select>
+            </form>
+            <section id="skinsContainer" class="skins-container hidden"></section>
         </section>
 
-        <section id="adminView" style="display: none; padding: 20px">
+        <section id="adminView" class="hidden" style="padding: 20px">
             <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                  <h2>Admin Panel: Manage Users</h2>
             </header>
-            <p id="adminStatusMessage" class="status-message" style="display: none; margin-bottom: 15px;"></p>
+            <p id="adminStatusMessage" class="status-message hidden" style="margin-bottom: 15px;"></p>
             <section id="adminUsersContainer" style="display: flex; flex-direction: column; gap: 10px;"></section>
 
-            <section id="adminInventoryView" style="display: none; margin-top: 20px;">
+            <section id="adminCategoriesView" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #444;">
+                <h3>Manage Categories</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
+                    <input type="text" id="newCategoryName" placeholder="New category name..." style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white; flex: 1; max-width: 300px;">
+                    <button id="addCategoryBtn" style="background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Add</button>
+                </div>
+                <ul id="adminCategoryList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; max-width: 400px;">
+                </ul>
+            </section>
+
+            <section id="adminInventoryView" class="hidden" style="margin-top: 20px;">
                 <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h3 id="adminInventoryTitle">User Inventory</h3>
                     <button id="backToUserListBtn" style="background: #7f8c8d; color: white; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-weight: bold;">
@@ -55,14 +79,14 @@
                 </header>
                 <section id="adminUserSkinsContainer" class="skins-container"></section>
             </section>
+
         </section>
     </main>
 
-    <div id="modalOverlay" class="modal-overlay" style="display: none;">
-        <div id="loginModal" class="modal-content">
+        <dialog id="loginModal" class="modal-content">
             <span class="close-btn" id="closeLogin">&times;</span>
             <h3>Login</h3>
-            <div id="loginMessage" style="display: none; margin-bottom: 10px;"></div>
+            <div id="loginMessage" class="hidden" style="margin-bottom: 10px;"></div>
             <form id="loginForm">
                 <input type="text" id="loginUsername" placeholder="Username" required>
                 <input type="password" id="loginPassword" placeholder="Password" required>
@@ -71,12 +95,12 @@
             <p style="margin-top: 15px; font-size: 0.9em;">
                 No account? <a href="#" id="switchToRegister">Register here</a>
             </p>
-        </div>
+        </dialog>
 
-        <div id="registerModal" class="modal-content" style="display: none;">
+        <dialog id="registerModal" class="modal-content">
             <span class="close-btn" id="closeRegister">&times;</span>
             <h3>Register account</h3>
-            <div id="registerMessage" style="display: none; margin-top: 10px;"></div>
+            <div id="registerMessage" class="hidden" style="margin-top: 10px;"></div>
             <form id="registerForm">
                 <input type="text" id="regUsername" placeholder="Chose username">
                 <input type="password" id="regPassword" placeholder="Chose password">
@@ -85,23 +109,19 @@
             <p style="margin-top: 15px;" font-size: 0.9em;>
                 Already have an account <a href="#" id="switchToLogin">Login here</a>
             </p>
-        </div>
+        </dialog>
 
-        <div id="addSkinModal" class="modal-content" style="display: none;">
+        <dialog id="addSkinModal" class="modal-content">
             <span class="close-btn" id="closeAddSkin">&times;</span>
             <h3>Add skin</h3>
-            <div id="addSkinMessage" style="display: none; margin-top: 10px;"></div>
+            <div id="addSkinMessage" class="hidden" style="margin-top: 10px;"></div>
             <form id="addSkinForm">
                 <input type="text" id="addSkinName" placeholder="Skin Name" required>
                 <input type="text" id="addSkinPrice" placeholder="price" required>
                 <input type="url" id="addSkinImage" placeholder="Image URL (optional)">
 
                 <label>Category:</label>
-                <select id="addSkinCategory" required>
-                    <option value="1">Sniper</option>
-                    <option value="2">Rifle</option>
-                    <option value="3">Pistol</option>
-                </select>
+                <select id="addSkinCategory" required> </select>
                 <label>Wear:</label>
                 <select id="addSkinCondition" required>¨
                     <option value="5">Battle-Scared</option>
@@ -112,66 +132,55 @@
                 </select>
                 <button type="submit" style="margin-top: 10px;">Add</button>
             </form>
-        </div>
-
-
-        <div id="editSkinModal"
-            style="display: none; background: #2a2a2a; padding: 25px; border-radius: 8px; width: 300px; color: white; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-
-            <span id="closeEditModalBtn" style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 1.5em; font-weight: bold; color: #888;">&times;</span>
-
-            <h2 style="margin-top: 0; text-align: center; margin-bottom: 20px;">Edit Skin</h2>
-
-            <form id="editSkinForm" style="display: flex; flex-direction: column; gap: 15px;">
+        </dialog>
+        <dialog id="editSkinModal" class="modal-content">
+            <span id="closeEditModalBtn" class="close-btn" role="button" tabindex="0" aria-label="Close edit modal">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 20px; margin-top: 0;">Edit Skin</h2>
+            <form id="editSkinForm">
                 <input type="hidden" id="editSkinId">
-
-                <div>
-                    <label style="display: block; font-size: 0.9em; margin-bottom: 5px; color: #ccc;">Name</label>
-                    <input type="text" id="editSkinName"
-                        style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white; box-sizing: border-box;"
-                        required>
+        
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="editSkinName" class="input-field" required>
                 </div>
-
-                <div>
-                    <label style="display: block; font-size: 0.9em; margin-bottom: 5px; color: #ccc;">Price (kr)</label>
-                    <input type="number" id="editSkinPrice"
-                        style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white; box-sizing: border-box;"
-                        required>
+                <div class="form-group">
+                    <label>Price (kr)</label>
+                    <input type="number" id="editSkinPrice" class="input-field" required>
                 </div>
-
-                <div>
-                    <label style="display: block; font-size: 0.9em; margin-bottom: 5px; color: #ccc;">Category</label>
-                    <select id="editSkinCategory" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white;" required>
-                        <option value="1">Sniper</option>
-                        <option value="2">Rifle</option>
-                        <option value="3">Pistol</option>
-                    </select>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="editSkinCategory" class="input-field" required></select>
                 </div>
-                <div>
-                    <label style="display: block; font-size: 0.9em; margin-bottom: 5px; color: #ccc;">Condition</label>
-                    <select id="editSkinCondition" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white;" required>
-                        <option value="5">Battle-Scared</option>
+                <div class="form-group">
+                    <label>Condition</label>
+                    <select id="editSkinCondition" class="input-field" required>
+                        <option value="5">Battle-Scarred</option>
                         <option value="4">Well-Worn</option>
-                        <option value="3">Field-tested</option>
+                        <option value="3">Field-Tested</option>
                         <option value="2">Minimal Wear</option>
                         <option value="1">Factory New</option>
                     </select>
                 </div>
-                <div>
-                    <label style="display: block; font-size: 0.9em; margin-bottom: 5px; color: #ccc;">Image URL</label>
-                    <input type="text" id="editSkinImage"
-                        style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white; box-sizing: border-box;">
+                <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="text" id="editSkinImage" class="input-field">
                 </div>
-
-                <button type="submit"
-                    style="background: #3498db; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 1em; margin-top: 5px;">
-                    Save Changes
-                </button>
+        
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Save Changes</button>
             </form>
-        </div>
-    </div>
-
+        </dialog>
+        <dialog id="confirmModal" class="modal-content hidden" style="text-align: center;">
+            <h3>Are you sure?</h3>
+            <p>Do you really want to delete this item?</p>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="confirmYesBtn" style="background: green; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">
+                    Yes
+                </button>
+                <button id="confirmNoBtn" style="background: #7f8c8d; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">
+                    Cancel
+                </button>
+            </div>
+        </dialog>
     <script src="app.js"></script>
 </body>
-
 </html>

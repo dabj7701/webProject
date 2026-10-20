@@ -39,7 +39,8 @@ INSERT INTO users(username, password, role) VALUES
 INSERT INTO categories (name) VALUES 
 ('Sniper'),
 ('Rifle'),
-('Pistol');
+('Pistol'),
+('Uncategorized');
 
 INSERT INTO conditions(name) VALUES 
 ('Factory New'),

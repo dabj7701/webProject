@@ -44,6 +44,35 @@ app.get('/api/users', async (req, res) => {
     }
 })
 
+app.delete('/api/users/:id', async (req, res) => {
+    if(!req.session || !req.session.userId){
+        return res.status(401).json({error: 'Not logged in'})
+    }
+    if(req.session.role !== 'admin'){
+        return res.status(403).json({error: 'Forbidden: You do not have admin rights'})
+    }
+
+    let conn; 
+    try{
+        conn = await pool.getConnection();
+        const userIdToDelete = req.params.id; 
+
+        if(Number(userIdToDelete) === Number(req.session.userId)){
+            return res.status(400).json({error: 'You cannot delete your own admin account'})
+        }
+        const result = await conn.query('DELETE FROM users WHERE id = ?', [userIdToDelete])
+        if(result.affectedRows === 0){
+            return res.status(404).json({error: 'User not found'})
+        }
+        res.status(200).json({message: 'User and all their items deleted successfully!'})
+    } catch(error) {
+        console.log('Database error: ', error)
+        res.status(500).json({error: 'Server error'})
+    } finally {
+        if(conn) conn.release();
+    }
+})
+
 app.get('/api/users/:id/skins', async (req, res) => {
     if(!req.session || !req.session.userId){
         return res.status(401).json({error: 'Not logged in'})
@@ -136,11 +165,22 @@ app.post('/api/skins', async (req, res) => {
 })
 
 app.delete('/api/skins/:id', async (req,res) => {
+    if(!req.session || !req.session.userId){
+        return res.status(401).json({error: 'Not logged in!'});
+    }
+
     let conn; 
     try{
-        const skinId = req.params.id; 
+        const skinId = req.params.id;
+        const userId = req.session.userId;
+        const role = req.session.role 
         conn = await pool.getConnection();
-        const result = await conn.query('DELETE FROM skins WHERE id = ?', [skinId])
+        let result;
+        if(role === 'admin'){
+            result = await conn.query('DELETE FROM skins WHERE id = ?', [skinId])
+        } else {
+            result = await conn.query('DELETE FROM skins WHERE id = ? AND user_id = ?', [skinId, userId])
+        }
         if(result.affectedRows === 0){
             return res.status(404).json({ error: 'Skin not found'}); 
         }
@@ -148,6 +188,7 @@ app.delete('/api/skins/:id', async (req,res) => {
 
     }catch(err){
         console.log('Database error: ', err);
+        res.status(500).json({error: 'Database error'});
     }finally{
         if(conn) conn.release(); 
     }
@@ -161,7 +202,8 @@ app.put('/api/skins/:id', async (req, res) => {
     let conn;
     try{
         const skinId = req.params.id; 
-        const user_id = req.session.userId;
+        const sessionUserId = req.session.userId;
+        const role = req.session.role
         const { category_id, condition_id, name, price, image_url } = req.body;
 
         if(!name || !price || !category_id || !condition_id){
@@ -169,10 +211,18 @@ app.put('/api/skins/:id', async (req, res) => {
         }
 
         conn = await pool.getConnection(); 
-        const result = await conn.query(
-            'UPDATE skins SET user_id = ?, category_id = ?, condition_id = ?, name = ?, price = ?, image_url = ? WHERE id = ?',
-            [user_id, category_id, condition_id, name, price, image_url || null, skinId]
-        ); 
+        let result; 
+       if(role === 'admin'){
+            result = await conn.query(
+            'UPDATE skins SET category_id = ?, condition_id = ?, name = ?, price = ?, image_url = ? WHERE id = ?',
+            [category_id, condition_id, name, price, image_url || null, skinId]
+        );
+       } else {
+            result = await conn.query(
+                'UPDATE skins SET category_id = ?, condition_id = ?, name = ?, price = ?, image_url = ? WHERE id = ? AND user_id = ?',
+                [category_id, condition_id, name, price, image_url || null, skinId, sessionUserId]
+            )
+       }
 
         if(result.affectedRows === 0){
             return res.status(404).json({ error: 'Skin not found'}); 
@@ -180,6 +230,7 @@ app.put('/api/skins/:id', async (req, res) => {
         res.json({ message: 'Skin updated successfully' });
     }catch(err){
         console.log('Database error: ', err);
+        res.status(500).json({error: 'Database error'});
     }finally{
         if(conn) conn.release();
     }
@@ -193,10 +244,64 @@ app.get('/api/categories', async (req, res) => {
         res.json(rows);
     }catch(err){
         console.log('Databasfel:', err);
+        res.status(500).json({error: 'Database error'});
     }finally{
         if(conn) conn.release();
     }
 });
+
+app.post('/api/categories', async (req, res) => {
+    if(!req.session || !req.session.userId) return res.status(401).json({error: 'Not logged in'});
+    if(req.session.role !== 'admin') return res.status(403).json({error: 'Forbidden'});
+
+
+    const { name } = req.body;
+    if(!name) return res.status(400).json({error: 'Category name is required'});
+
+    let conn 
+    try{
+        conn = await pool.getConnection();
+        const existingCategory = await conn.query('SELECT id FROM categories WHERE name = ?', [name]);
+        if(existingCategory.length > 0) {
+            return res.status(400).json({error: 'A category with that name already exists!'});
+        }
+        const result = await conn.query('INSERT INTO categories (name) VALUES (?)', [name])
+        res.status(201).json({message : 'Category added', id: result.insertId.toString()})
+    }catch(err){
+        console.log('Database error: ', err)
+        res.status(500).json({error: 'Database error'});
+    }finally{
+        if(conn) conn.release();
+    }
+})
+
+app.delete('/api/categories/:id', async (req, res) => {
+    if(!req.session || !req.session.userId) return res.status(401).json({error: 'Not logged in'});
+    if(req.session.role !== 'admin') return res.status(403).json({error: 'Forbidden'});
+
+    let conn; 
+    try{
+        conn = await pool.getConnection();
+        const categoryIdToDelete = req.params.id; 
+
+        const categoryRows = await conn.query('SELECT id FROM categories WHERE name = ?', ['Uncategorized'])
+        const fallbackId = categoryRows[0].id;
+
+        if(Number(categoryIdToDelete) === Number(fallbackId)){
+            return res.status(400).json({ error: 'You cannot delete the default fallback category!'})
+        }
+        await conn.query('UPDATE skins SET category_id = ? WHERE category_id = ?', [fallbackId, categoryIdToDelete])
+        const result = await conn.query('DELETE FROM categories WHERE id = ?', [categoryIdToDelete])
+
+        if(result.affectedRows === 0) return res.status(404).json({error: 'Category not found'})
+        res.json({message: 'Category deleted and items safely moved to Uncategorized!'})
+    } catch(err) {
+        console.log('Database error: ', err)
+        res.status(500).json({error: 'Database error'})
+    } finally{
+        if(conn) conn.release()
+    }
+})
 
 app.get('/api/conditions', async (req, res) => {
     let conn; 
@@ -205,7 +310,8 @@ app.get('/api/conditions', async (req, res) => {
         const rows = await conn.query(`SELECT * FROM conditions`);
         res.json(rows); 
     }catch(err){
-        console.log('Databasfel: ', err);
+        console.log('Database error: ', err);
+        res.status(500).json({error: 'Database error'})
     }finally{
         if(conn) conn.release();
     }
@@ -228,6 +334,7 @@ app.post('/api/register', async (req, res) => {
         res.status(201).json({message: 'User has been created'})
     }catch(err){
         console.log('Database error', err);
+        res.status(500).json({error: 'Database error'})
     }finally{
         if(conn) conn.release(); 
     }
