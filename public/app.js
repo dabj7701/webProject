@@ -149,7 +149,7 @@ function editSkin(skin) {
 }
 
 function deleteSkin(skinId) {
-  skinToDelete = skinId;
+  deleteItemId = skinId;
   deleteItemType = "skin";
   openModal("confirm");
 }
@@ -681,10 +681,12 @@ document.getElementById("confirmYesBtn").addEventListener("click", () => {
   if (!deleteItemId) return;
 
   let endpoint = `/api/skins/${deleteItemId}`;
-  if (deleteItemType === "user") endpoint = `/api/users/${deleteItemId}`;
-  if (deleteItemType === "category")
+  if (deleteItemType === "user") {
+    endpoint = `/api/users/${deleteItemId}`;
+  }
+  if (deleteItemType === "category") {
     endpoint = `/api/categories/${deleteItemId}`;
-
+  }
   fetch(endpoint, { method: "DELETE" })
     .then(async (res) => {
       const data = await res.json();
