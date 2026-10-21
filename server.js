@@ -90,6 +90,8 @@ app.get('/api/users/:id/skins', async (req, res) => {
             SELECT 
                 skins.id,
                 skins.name AS skin_name,
+                skins.category_id,
+                skins.condition_id,
                 categories.name AS category_name,
                 conditions.name AS condition_name,
                 skins.price,
@@ -122,6 +124,8 @@ app.get('/api/skins', async (req, res) => {
             SELECT 
                 skins.id,
                 skins.name AS skin_name,
+                skins.category_id,
+                skins.condition_id,
                 categories.name AS category_name,
                 conditions.name AS condition_name,
                 skins.price,

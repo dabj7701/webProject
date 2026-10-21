@@ -12,7 +12,7 @@
     <header class="main-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div class="brand">
             <img src="cs2skins.jpg" alt="Skinfolio logo">
-            <h1>Skinfolio</h1>
+            <h1 class="m-0">Skinfolio</h1>
         </div>
 
         <nav class="header-actions">
@@ -26,9 +26,9 @@
 
     <main>
         <section id="skinCollection">
-            <header style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-                <h2 style="margin: 0;">Your Skins</h2>
-                <p id="totalValueContainer" class="hidden" style="margin: 0; font-weight: bold;">
+            <header class="section-header hidden">
+                <h2 class="m-0">Your Skins</h2>
+                <p id="totalValueContainer" class="hidden total-value-text">
                     Total collection value: <span id="totalValue">0</span> kr
                 </p>
             </header>  
@@ -54,28 +54,26 @@
         </section>
 
         <section id="adminView" class="hidden" style="padding: 20px">
-            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                 <h2>Admin Panel: Manage Users</h2>
+            <header class="section-header">
+                 <h2 class="m-0">Admin Panel: Manage Users</h2>
             </header>
             <p id="adminStatusMessage" class="status-message hidden" style="margin-bottom: 15px;"></p>
             <section id="adminUsersContainer" style="display: flex; flex-direction: column; gap: 10px;"></section>
 
-            <section id="adminCategoriesView" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #444;">
+            <section id="adminCategoriesView" class="admin-categories-section">
                 <h3>Manage Categories</h3>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
-                    <input type="text" id="newCategoryName" placeholder="New category name..." style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #1a1a1a; color: white; flex: 1; max-width: 300px;">
-                    <button id="addCategoryBtn" style="background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Add</button>
-                </div>
-                <ul id="adminCategoryList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; max-width: 400px;">
-                </ul>
+                <form id="addCategoryForm" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="newCategoryName" class="input-field" placeholder="New category name..." style="max-width: 300px;">
+                    <button type="submit" class="btn btn-success">Add</button>
+                    <span id="categoryErrorMsg" class="hidden" style="font-size: 14px; font-weight: bold; margin: 0;"></span>
+                </form>
+                <ul id="adminCategoryList" class="admin-category-list"></ul>
             </section>
 
             <section id="adminInventoryView" class="hidden" style="margin-top: 20px;">
-                <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 id="adminInventoryTitle">User Inventory</h3>
-                    <button id="backToUserListBtn" style="background: #7f8c8d; color: white; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-weight: bold;">
-                        Back to Users
-                    </button>
+                <header class="section-header">
+                    <h3 id="adminInventoryTitle" class="m-0">User Inventory</h3>
+                    <button id="backToUserListBtn" class="btn btn-secondary">Back to Users</button>
                 </header>
                 <section id="adminUserSkinsContainer" class="skins-container"></section>
             </section>
@@ -84,61 +82,78 @@
     </main>
 
         <dialog id="loginModal" class="modal-content">
-            <span class="close-btn" id="closeLogin">&times;</span>
-            <h3>Login</h3>
+            <span class="close-btn" id="closeLogin" role="button" tabindex="0" aria-label="Close login modal">&times;</span>
+            <h3 class="modal-title">Login</h3>
             <div id="loginMessage" class="hidden" style="margin-bottom: 10px;"></div>
             <form id="loginForm">
-                <input type="text" id="loginUsername" placeholder="Username" required>
-                <input type="password" id="loginPassword" placeholder="Password" required>
-                <button type="submit">Login</button>
+                <div class="form-group">
+                    <input type="text" id="loginUsername" class="input-field" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginPassword" class="input-field" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
             </form>
-            <p style="margin-top: 15px; font-size: 0.9em;">
+            <p class="modal-footer-text">
                 No account? <a href="#" id="switchToRegister">Register here</a>
             </p>
         </dialog>
 
         <dialog id="registerModal" class="modal-content">
-            <span class="close-btn" id="closeRegister">&times;</span>
-            <h3>Register account</h3>
+            <span class="close-btn" id="closeRegister" role="button" tabindex="0" aria-label="Close login modal">&times;</span>
+            <h3 class="modal-title">Register account</h3>
             <div id="registerMessage" class="hidden" style="margin-top: 10px;"></div>
             <form id="registerForm">
-                <input type="text" id="regUsername" placeholder="Chose username">
-                <input type="password" id="regPassword" placeholder="Chose password">
-                <button type="submit">Register</button>
+                <div class="form-group">
+                    <input type="text" id="regUsername" class="input-field" placeholder="Chose username" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="regPassword" class="input-field" placeholder="Chose password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
             </form>
-            <p style="margin-top: 15px;" font-size: 0.9em;>
+            <p class="modal-footer-text">
                 Already have an account <a href="#" id="switchToLogin">Login here</a>
             </p>
         </dialog>
 
         <dialog id="addSkinModal" class="modal-content">
-            <span class="close-btn" id="closeAddSkin">&times;</span>
-            <h3>Add skin</h3>
+            <span class="close-btn" id="closeAddSkin" role="button" tabindex="0" aria-label="Close login modal">&times;</span>
+            <h3 class="modal-title">Add skin</h3>
             <div id="addSkinMessage" class="hidden" style="margin-top: 10px;"></div>
             <form id="addSkinForm">
-                <input type="text" id="addSkinName" placeholder="Skin Name" required>
-                <input type="text" id="addSkinPrice" placeholder="price" required>
-                <input type="url" id="addSkinImage" placeholder="Image URL (optional)">
-
-                <label>Category:</label>
-                <select id="addSkinCategory" required> </select>
-                <label>Wear:</label>
-                <select id="addSkinCondition" required>¨
-                    <option value="5">Battle-Scared</option>
-                    <option value="4">Well-Worn</option>
-                    <option value="3">Field-tested</option>
-                    <option value="2">Mininal Wear</option>
-                    <option value="1">Factory New</option>
-                </select>
-                <button type="submit" style="margin-top: 10px;">Add</button>
+                <div class="form-group">
+                    <input type="text" id="addSkinName" class="input-field" placeholder="Skin Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="addSkinPrice" class="input-field" placeholder="price" required>
+                </div>
+                <div class="form-group">
+                    <input type="url" id="addSkinImage" class="input-field" placeholder="Image URL (optional)">
+                </div>
+                <div class="form-group">
+                    <label>Category:</label>
+                    <select id="addSkinCategory" class="input-field" required> </select>
+                </div>
+                <div class="form-group">
+                    <label>Wear:</label>
+                    <select id="addSkinCondition" class="input-field" required>¨
+                        <option value="5">Battle-Scared</option>
+                        <option value="4">Well-Worn</option>
+                        <option value="3">Field-tested</option>
+                        <option value="2">Mininal Wear</option>
+                        <option value="1">Factory New</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Add</button>
             </form>
         </dialog>
+
         <dialog id="editSkinModal" class="modal-content">
             <span id="closeEditModalBtn" class="close-btn" role="button" tabindex="0" aria-label="Close edit modal">&times;</span>
-            <h2 style="text-align: center; margin-bottom: 20px; margin-top: 0;">Edit Skin</h2>
+            <h3 class="modal-title">Edit Skin</h3>
             <form id="editSkinForm">
                 <input type="hidden" id="editSkinId">
-        
                 <div class="form-group">
                     <label>Name</label>
                     <input type="text" id="editSkinName" class="input-field" required>
@@ -165,20 +180,16 @@
                     <label>Image URL</label>
                     <input type="text" id="editSkinImage" class="input-field">
                 </div>
-        
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Save Changes</button>
             </form>
         </dialog>
-        <dialog id="confirmModal" class="modal-content hidden" style="text-align: center;">
-            <h3>Are you sure?</h3>
+
+        <dialog id="confirmModal" class="modal-content" style="text-align: center;">
+            <h3 class="modal-title">Are you sure?</h3>
             <p>Do you really want to delete this item?</p>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button id="confirmYesBtn" style="background: green; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">
-                    Yes
-                </button>
-                <button id="confirmNoBtn" style="background: #7f8c8d; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">
-                    Cancel
-                </button>
+            <div class="modal-btn-group">
+                <button id="confirmYesBtn" class="btn btn-success">Yes</button>
+                <button id="confirmNoBtn" class="btn btn-secondary">Cancel</button>
             </div>
         </dialog>
     <script src="app.js"></script>
