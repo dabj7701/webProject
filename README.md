@@ -1,89 +1,75 @@
-# Skinfolio API
+# Skin folio - Skin Inventory Manager
 
-Ett backend-system för att hantera CS-skins, byggt med Node.js, Express och MariaDB (Docker).
+**Frontend**
 
-## Förkrav
-Innan du startar behöver du ha följande installerat på din dator:
-* [Node.js](https://nodejs.org/)
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-* Git
+- Written in JavaScript, HTML and CSS
+- Architecture relies on a state management system (setPageState) for DOM manipulation
+- All client-server communication is handled asynchronously using fetch API
+- UI feedback is provided for success, error and load states
 
-## Kom igång
+**Backend**
 
-**1. Klona projektet**
-\`\`\`bash
-git clone <länk-till-ditt-github-repo>
-cd <ditt-mappnamn>
-\`\`\`
+- Built with Node.js and Express.js
+- Implements secure RESTful API endpoints for all CRUD operations
+- User authentication is handeld securely using bcrypt for hashing the passwords
+- Strict error handling ensures the server responds with appropriate HTTP status
 
-**2. Installera beroenden**
-\`\`\`bash
-npm install
-\`\`\`
+**Database**
 
-**3. Konfigurera miljövariabler**
-Skapa en fil som heter `.env` i projektets rotmapp (denna laddas inte upp på GitHub). Lägg in följande:
-\`\`\`env
+- MariaDB database accessed via a connection pool
+- Uses parameterized queries to prevent SQL injections
+- try, catch and finally blocks are implemented to ensure safe release of database connections
+
+## Database Structure
+
+- **Users:** Stores user information
+  - id(PK), username(Unique), password(Hashed), role(user or admin)
+- **Categories:** Stores all the available categories
+  - id(PK), name(Unique)
+- **Skins:** The primary inventory items
+  - id(PK), name, price, user_id(FK -> Users), category(FK -> Categories)
+
+## Setup Instructions
+
+### Needed Software
+
+- Node.js installed
+- Docker installed (For MariaDB container)
+
+### Database Setup
+
+The databas is fully containerized using Docker and MariaDB
+
+When running `docker compose up -d`, the database container is automatically initialized
+
+### Installation & Execution
+
+**Install dependencies:**
+
+- Open your terminal in the project folder and run:
+  `npm install`
+
+**Environment Variables (.env):**
+
+- Create a `.env` file in the root directory and add your configuration variables. For example:
+
+```env
+PORT=3000
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=1234
 DB_NAME=skinfolio
-PORT=3000
-\`\`\`
+```
 
-**4. Starta databasen (Docker)**
-Se till att Docker Desktop är igång och kör sedan:
-\`\`\`bash
-docker-compose up -d
-\`\`\`
-*Detta laddar ner MariaDB, startar den på port 3306 och bygger upp databasstrukturen och testdata automatiskt via `setup.sql`.*
+**Start the database:**
 
-**5. Starta servern**
-\`\`\`bash
-node server.js
-\`\`\`
-API:et snurrar nu på `http://localhost:3000`.
+- Start the MariaDB container (this automatically executes setup.sql):
+  `docker compose up -d`
 
-## API Routes
+**Start the server:**
 
-### Skins
-* `GET /api/skins` - Hämta alla skins
-* `POST /api/skins` - Lägg till ett nytt skin
-* `PUT /api/skins/:id` - Uppdatera ett befintligt skin
-* `DELETE /api/skins/:id` - Ta bort ett skin
+- `node server.js`
 
-### Kategorier & Skick
-* `GET /api/categories` - Hämta alla vapenkategorier
-* `GET /api/conditions` - Hämta alla wear conditions
+**Access the application:**
 
-### Användare
-* `POST /api/users` - Registrera en ny användare (lösenord hashas med bcrypt) <--- Inte klar än
-
-* ## Arbeta tillsammans (Git-kommandon)
-
-När du har skrivit ny kod och vill ladda upp den till projektet, kör dessa kommandon i terminalen:
-
-**1. Kolla vilka filer du har ändrat (frivilligt):**
-\`\`\`bash
-git status
-\`\`\`
-
-**2. Lägg till alla dina ändringar:**
-\`\`\`bash
-git add .
-\`\`\`
-
-**3. Spara ändringarna lokalt med ett meddelande:**
-\`\`\`bash
-git commit -m "Beskriv vad du har gjort, t.ex. 'Lade till knappar i frontend'"
-\`\`\`
-
-**4. Hämta de senaste ändringarna (gör alltid detta innan du laddar upp!):**
-\`\`\`bash
-git pull
-\`\`\`
-
-**5. Ladda upp din kod till projektet:**
-\`\`\`bash
-git push
-\`\`\`
+- Open a web browser and navigate to: `http://localhost:3000`

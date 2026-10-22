@@ -11,5 +11,4 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      # Detta gör att Docker automatiskt kör din befintliga setup.sql första gången containern startar
       - ./setup.sql:/docker-entrypoint-initdb.d/setup.sql
