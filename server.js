@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(
   session({
-    secret: "superhemlig_nyckel_här",
+    secret: process.env.SESSION_SECRET || "default_secret",
     resave: false,
     saveUninitialized: false,
   }),
@@ -175,12 +175,10 @@ app.post("/api/skins", async (req, res) => {
       "INSERT INTO skins (user_id, category_id, condition_id, name, price, image_url) VALUES (?, ?, ?, ?, ?, ?)",
       [user_id, category_id, condition_id, name, price, image_url || null],
     );
-    res
-      .status(201)
-      .json({
-        message: "Skin added successfully",
-        skinId: result.insertId.toString(),
-      });
+    res.status(201).json({
+      message: "Skin added successfully",
+      skinId: result.insertId.toString(),
+    });
   } catch (err) {
     console.log("Database error: ", err);
     res.status(500).json({ error: "Error while trying to add skin" });
